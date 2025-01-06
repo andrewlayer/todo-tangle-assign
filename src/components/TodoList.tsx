@@ -4,7 +4,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import TodoItem from './TodoItem';
 import SignatureModal from './SignatureModal';
-import FilterBar from './todo/FilterBar';
 import { Todo } from '@/types/todo';
 import { useTodos } from '@/hooks/useTodos';
 
@@ -12,8 +11,6 @@ const TodoList = () => {
   const [newTodo, setNewTodo] = useState('');
   const [selectedTodo, setSelectedTodo] = useState<Todo | null>(null);
   const [isSignatureModalOpen, setIsSignatureModalOpen] = useState(false);
-  const [filterText, setFilterText] = useState('');
-  
   const { 
     todos, 
     addTodo, 
@@ -43,25 +40,6 @@ const TodoList = () => {
     setSelectedTodo(null);
   };
 
-  const filterTodos = (todos: Todo[]): Todo[] => {
-    if (!filterText) return todos;
-    
-    return todos.map(todo => {
-      const matchesFilter = todo.text.toLowerCase().includes(filterText.toLowerCase());
-      const filteredSubTodos = filterTodos(todo.subTodos);
-      
-      if (matchesFilter || filteredSubTodos.length > 0) {
-        return {
-          ...todo,
-          subTodos: filteredSubTodos
-        };
-      }
-      return null;
-    }).filter(Boolean) as Todo[];
-  };
-
-  const filteredTodos = filterTodos(todos);
-
   return (
     <div className="max-w-2xl mx-auto p-6 space-y-6">
       <div className="flex items-center gap-3 mb-8">
@@ -72,11 +50,6 @@ const TodoList = () => {
         />
         <h1 className="text-3xl font-bold text-gray-900">Layer's Todos</h1>
       </div>
-      
-      <FilterBar 
-        filterText={filterText}
-        onFilterChange={setFilterText}
-      />
       
       <div className="flex gap-2">
         <Input
@@ -94,7 +67,7 @@ const TodoList = () => {
       </div>
 
       <div className="space-y-4">
-        {filteredTodos.map((todo) => (
+        {todos.map((todo) => (
           <TodoItem
             key={todo.id}
             todo={todo}
