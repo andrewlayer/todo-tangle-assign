@@ -1,11 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Check, GripVertical } from 'lucide-react';
+import { GripVertical } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Todo } from '@/types/todo';
 import AddSubTodoModal from './AddSubTodoModal';
-import TodoControls from './todo/TodoControls';
-import TodoText from './todo/TodoText';
-import TodoNotes from './todo/TodoNotes';
+import TodoContent from './todo/TodoContent';
 
 interface TodoItemProps {
   todo: Todo;
@@ -16,6 +14,8 @@ interface TodoItemProps {
   onDelete: (todoId: string, isSubTodo?: boolean) => void;
   onUpdateNotes: (todoId: string, notes: string) => void;
   onUpdateText: (todoId: string, text: string) => void;
+  isExpanded: boolean;
+  onToggleExpand: () => void;
 }
 
 const TodoItem = ({ 
@@ -26,7 +26,9 @@ const TodoItem = ({
   onAddSubTodo, 
   onDelete,
   onUpdateNotes,
-  onUpdateText
+  onUpdateText,
+  isExpanded,
+  onToggleExpand
 }: TodoItemProps) => {
   const [assignee, setAssignee] = useState(todo.assigned_to || '');
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -58,14 +60,6 @@ const TodoItem = ({
   const handleNotesBlur = () => {
     if (notes !== todo.notes) {
       onUpdateNotes(todo.id, notes);
-    }
-  };
-
-  const handleToggleComplete = () => {
-    if (todo.completed) {
-      onUncomplete(todo.id);
-    } else {
-      onComplete(todo);
     }
   };
 
@@ -138,51 +132,30 @@ const TodoItem = ({
             <GripVertical className="w-4 h-4 text-gray-400" />
           </div>
           
-          <button
-            onClick={handleToggleComplete}
-            className={cn(
-              "w-5 h-5 rounded-full border-2 flex items-center justify-center",
-              "transition-colors hover:border-[#7A65FF]",
-              todo.completed ? "bg-[#7A65FF] border-[#7A65FF]" : "border-gray-300"
-            )}
-          >
-            {todo.completed && <Check className="w-3 h-3 text-white" />}
-          </button>
-
-          <TodoText
-            text={todo.text}
+          <TodoContent
+            todo={todo}
+            isExpanded={isExpanded}
+            onToggleExpand={onToggleExpand}
+            onComplete={() => onComplete(todo)}
+            onUncomplete={() => onUncomplete(todo.id)}
+            assignee={assignee}
+            onAssignChange={handleAssignChange}
+            onAssignBlur={handleAssignBlur}
             isEditing={isEditing}
-            isCompleted={todo.completed}
             editedText={editedText}
             onEditedTextChange={(e) => setEditedText(e.target.value)}
             onTextEdit={handleTextEdit}
             onTextClick={() => !todo.completed && setIsEditing(true)}
             onTextSave={handleTextSave}
-          />
-
-          <TodoControls
-            assignee={assignee}
-            onAssignChange={handleAssignChange}
-            onAssignBlur={handleAssignBlur}
-            onAddSubTodo={() => setIsModalOpen(true)}
+            isNotesOpen={isNotesOpen}
+            notes={notes}
+            onNotesChange={handleNotesChange}
+            onNotesBlur={handleNotesBlur}
             onToggleNotes={() => setIsNotesOpen(!isNotesOpen)}
+            onAddSubTodo={() => setIsModalOpen(true)}
             onDelete={() => onDelete(todo.id)}
-            hasNotes={Boolean(todo.notes?.trim())}
           />
         </div>
-
-        <TodoNotes
-          isOpen={isNotesOpen}
-          notes={notes}
-          onChange={handleNotesChange}
-          onBlur={handleNotesBlur}
-        />
-
-        {todo.completed && todo.signature && (
-          <div className="mt-2 text-sm text-gray-500">
-            Completed by: {todo.signature}
-          </div>
-        )}
       </div>
 
       <AddSubTodoModal
@@ -194,7 +167,7 @@ const TodoItem = ({
         }}
       />
 
-      {todo.subTodos.length > 0 && (
+      {isExpanded && todo.subTodos.length > 0 && (
         <div className="pl-8 space-y-2">
           {todo.subTodos.map((subTodo) => (
             <TodoItem
@@ -207,6 +180,8 @@ const TodoItem = ({
               onDelete={(todoId) => onDelete(todoId, true)}
               onUpdateNotes={onUpdateNotes}
               onUpdateText={onUpdateText}
+              isExpanded={isExpanded}
+              onToggleExpand={onToggleExpand}
             />
           ))}
         </div>

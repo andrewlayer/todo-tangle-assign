@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus } from 'lucide-react';
+import { Plus, ChevronDown, ChevronUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import TodoItem from './TodoItem';
@@ -13,6 +13,8 @@ const TodoList = () => {
   const [selectedTodo, setSelectedTodo] = useState<Todo | null>(null);
   const [isSignatureModalOpen, setIsSignatureModalOpen] = useState(false);
   const [assigneeFilter, setAssigneeFilter] = useState('');
+  const [expandedTodos, setExpandedTodos] = useState<Set<string>>(new Set());
+  const [allExpanded, setAllExpanded] = useState(true);
   
   const { 
     todos, 
@@ -58,6 +60,37 @@ const TodoList = () => {
     }).filter((todo): todo is Todo => todo !== null);
   };
 
+  const toggleExpand = (todoId: string) => {
+    setExpandedTodos(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(todoId)) {
+        newSet.delete(todoId);
+      } else {
+        newSet.add(todoId);
+      }
+      return newSet;
+    });
+  };
+
+  const toggleExpandAll = () => {
+    if (allExpanded) {
+      setExpandedTodos(new Set());
+    } else {
+      const allIds = new Set<string>();
+      const addAllTodoIds = (todos: Todo[]) => {
+        todos.forEach(todo => {
+          if (todo.subTodos.length > 0) {
+            allIds.add(todo.id);
+            addAllTodoIds(todo.subTodos);
+          }
+        });
+      };
+      addAllTodoIds(todos);
+      setExpandedTodos(allIds);
+    }
+    setAllExpanded(!allExpanded);
+  };
+
   const filteredTodos = assigneeFilter
     ? filterTodosByAssignee(todos, assigneeFilter)
     : todos;
@@ -94,6 +127,26 @@ const TodoList = () => {
         </Button>
       </div>
 
+      <div className="flex justify-end mb-4">
+        <Button
+          variant="outline"
+          onClick={toggleExpandAll}
+          className="text-sm"
+        >
+          {allExpanded ? (
+            <>
+              <ChevronUp className="w-4 h-4 mr-2" />
+              Collapse All
+            </>
+          ) : (
+            <>
+              <ChevronDown className="w-4 h-4 mr-2" />
+              Expand All
+            </>
+          )}
+        </Button>
+      </div>
+
       <div className="space-y-4">
         {filteredTodos.map((todo) => (
           <TodoItem
@@ -106,6 +159,8 @@ const TodoList = () => {
             onDelete={deleteTodo}
             onUpdateNotes={updateNotes}
             onUpdateText={updateTodoText}
+            isExpanded={expandedTodos.has(todo.id)}
+            onToggleExpand={() => toggleExpand(todo.id)}
           />
         ))}
       </div>
