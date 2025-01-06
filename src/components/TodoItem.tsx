@@ -6,11 +6,12 @@ import { Textarea } from '@/components/ui/textarea';
 import { Todo } from '@/types/todo';
 import { cn } from '@/lib/utils';
 import AddSubTodoModal from './AddSubTodoModal';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Collapsible, CollapsibleContent } from '@/components/ui/collapsible';
 
 interface TodoItemProps {
   todo: Todo;
   onComplete: (todo: Todo) => void;
+  onUncomplete: (todoId: string) => void;
   onAssign: (todoId: string, assignee: string, isSubTodo?: boolean) => void;
   onAddSubTodo: (parentId: string, text: string) => void;
   onDelete: (todoId: string, isSubTodo?: boolean) => void;
@@ -19,7 +20,8 @@ interface TodoItemProps {
 
 const TodoItem = ({ 
   todo, 
-  onComplete, 
+  onComplete,
+  onUncomplete, 
   onAssign, 
   onAddSubTodo, 
   onDelete,
@@ -56,6 +58,14 @@ const TodoItem = ({
     }
   };
 
+  const handleToggleComplete = () => {
+    if (todo.completed) {
+      onUncomplete(todo.id);
+    } else {
+      onComplete(todo);
+    }
+  };
+
   return (
     <div className="space-y-2">
       <div className={cn(
@@ -65,7 +75,7 @@ const TodoItem = ({
       )}>
         <div className="flex items-center gap-3">
           <button
-            onClick={() => !todo.completed && onComplete(todo)}
+            onClick={handleToggleComplete}
             className={cn(
               "w-5 h-5 rounded-full border-2 flex items-center justify-center",
               "transition-colors hover:border-[#7A65FF]",
@@ -153,6 +163,7 @@ const TodoItem = ({
               key={subTodo.id}
               todo={subTodo}
               onComplete={onComplete}
+              onUncomplete={onUncomplete}
               onAssign={(todoId, assignee) => onAssign(todoId, assignee, true)}
               onAddSubTodo={onAddSubTodo}
               onDelete={(todoId) => onDelete(todoId, true)}

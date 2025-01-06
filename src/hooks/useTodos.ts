@@ -16,7 +16,7 @@ export const useTodos = () => {
 
       if (error) throw error;
 
-      // Transform the flat data into a nested structure with unlimited depth
+      // Transform the flat data into a nested structure
       const todoMap = new Map<string, Todo>();
       
       // First pass: create Todo objects
@@ -181,6 +181,34 @@ export const useTodos = () => {
     }
   };
 
+  const uncompleteTodo = async (todoId: string) => {
+    try {
+      const { error } = await supabase
+        .from('todos')
+        .update({ 
+          completed: false,
+          signature: null
+        })
+        .eq('id', todoId);
+
+      if (error) throw error;
+
+      await fetchTodos();
+
+      toast({
+        title: "Todo uncompleted",
+        description: "Task has been marked as incomplete",
+      });
+    } catch (error) {
+      console.error('Error uncompleting todo:', error);
+      toast({
+        title: "Error uncompleting todo",
+        description: "Please try again later",
+        variant: "destructive"
+      });
+    }
+  };
+
   const assignTodo = async (todoId: string, assignee: string) => {
     try {
       const { error } = await supabase
@@ -253,6 +281,7 @@ export const useTodos = () => {
     addTodo,
     deleteTodo,
     completeTodo,
+    uncompleteTodo,
     assignTodo,
     updateNotes
   };

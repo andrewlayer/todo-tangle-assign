@@ -11,7 +11,7 @@ const TodoList = () => {
   const [newTodo, setNewTodo] = useState('');
   const [selectedTodo, setSelectedTodo] = useState<Todo | null>(null);
   const [isSignatureModalOpen, setIsSignatureModalOpen] = useState(false);
-  const { todos, addTodo, deleteTodo, completeTodo, assignTodo, updateNotes } = useTodos();
+  const { todos, addTodo, deleteTodo, completeTodo, uncompleteTodo, assignTodo, updateNotes } = useTodos();
 
   const handleAddTodo = async (text: string, parentId: string | null = null) => {
     if (!text.trim()) return;
@@ -63,6 +63,7 @@ const TodoList = () => {
             key={todo.id}
             todo={todo}
             onComplete={handleTodoCompletion}
+            onUncomplete={uncompleteTodo}
             onAssign={assignTodo}
             onAddSubTodo={(parentId, text) => handleAddTodo(text, parentId)}
             onDelete={deleteTodo}
