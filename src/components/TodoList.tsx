@@ -1,19 +1,28 @@
 import React, { useState } from 'react';
-import { Plus, User } from 'lucide-react';
+import { Plus, User, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import TodoItem from './TodoItem';
 import SignatureModal from './SignatureModal';
 import { Todo } from '@/types/todo';
+import { useToast } from '@/components/ui/use-toast';
 
 const TodoList = () => {
   const [todos, setTodos] = useState<Todo[]>([]);
   const [newTodo, setNewTodo] = useState('');
   const [selectedTodo, setSelectedTodo] = useState<Todo | null>(null);
   const [isSignatureModalOpen, setIsSignatureModalOpen] = useState(false);
+  const { toast } = useToast();
 
   const addTodo = (parentId: string | null = null) => {
-    if (!newTodo.trim()) return;
+    if (!newTodo.trim()) {
+      toast({
+        title: "Cannot add empty todo",
+        description: "Please enter some text for your todo",
+        variant: "destructive"
+      });
+      return;
+    }
 
     const newTodoItem: Todo = {
       id: Date.now().toString(),
@@ -27,17 +36,27 @@ const TodoList = () => {
 
     if (parentId) {
       setTodos(prevTodos => {
-        return prevTodos.map(todo => {
-          if (todo.id === parentId) {
-            return { ...todo, subTodos: [...todo.subTodos, newTodoItem] };
-          }
-          return todo;
-        });
+        const updateTodoWithSubTodos = (todos: Todo[]): Todo[] => {
+          return todos.map(todo => {
+            if (todo.id === parentId) {
+              return { ...todo, subTodos: [...todo.subTodos, newTodoItem] };
+            }
+            if (todo.subTodos.length > 0) {
+              return { ...todo, subTodos: updateTodoWithSubTodos(todo.subTodos) };
+            }
+            return todo;
+          });
+        };
+        return updateTodoWithSubTodos(prevTodos);
       });
     } else {
       setTodos(prevTodos => [...prevTodos, newTodoItem]);
     }
     setNewTodo('');
+    toast({
+      title: "Todo added",
+      description: parentId ? "Sub-todo added successfully" : "Todo added successfully",
+    });
   };
 
   const handleTodoCompletion = (todo: Todo) => {
@@ -66,6 +85,10 @@ const TodoList = () => {
     );
     setIsSignatureModalOpen(false);
     setSelectedTodo(null);
+    toast({
+      title: "Todo completed",
+      description: `Task marked as complete by ${signature}`,
+    });
   };
 
   const assignTodo = (todoId: string, assignee: string, isSubTodo: boolean = false) => {
@@ -85,6 +108,23 @@ const TodoList = () => {
         return todo;
       })
     );
+  };
+
+  const deleteTodo = (todoId: string, isSubTodo: boolean = false) => {
+    if (!isSubTodo) {
+      setTodos(prevTodos => prevTodos.filter(todo => todo.id !== todoId));
+    } else {
+      setTodos(prevTodos =>
+        prevTodos.map(todo => ({
+          ...todo,
+          subTodos: todo.subTodos.filter(st => st.id !== todoId),
+        }))
+      );
+    }
+    toast({
+      title: "Todo deleted",
+      description: "Task has been removed",
+    });
   };
 
   return (
@@ -113,9 +153,8 @@ const TodoList = () => {
             todo={todo}
             onComplete={handleTodoCompletion}
             onAssign={assignTodo}
-            onAddSubTodo={(parentId) => {
-              if (newTodo) addTodo(parentId);
-            }}
+            onAddSubTodo={(parentId) => addTodo(parentId)}
+            onDelete={deleteTodo}
           />
         ))}
       </div>

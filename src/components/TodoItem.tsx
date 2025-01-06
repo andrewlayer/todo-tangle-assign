@@ -1,5 +1,5 @@
 import React from 'react';
-import { Check, Plus, User } from 'lucide-react';
+import { Check, Plus, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Todo } from '@/types/todo';
@@ -10,9 +10,10 @@ interface TodoItemProps {
   onComplete: (todo: Todo) => void;
   onAssign: (todoId: string, assignee: string, isSubTodo?: boolean) => void;
   onAddSubTodo: (parentId: string) => void;
+  onDelete: (todoId: string, isSubTodo?: boolean) => void;
 }
 
-const TodoItem = ({ todo, onComplete, onAssign, onAddSubTodo }: TodoItemProps) => {
+const TodoItem = ({ todo, onComplete, onAssign, onAddSubTodo, onDelete }: TodoItemProps) => {
   return (
     <div className="space-y-2">
       <div className={cn(
@@ -55,6 +56,14 @@ const TodoItem = ({ todo, onComplete, onAssign, onAddSubTodo }: TodoItemProps) =
             >
               <Plus className="w-4 h-4" />
             </Button>
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={() => onDelete(todo.id)}
+              className="h-8"
+            >
+              <Trash2 className="w-4 h-4" />
+            </Button>
           </div>
         </div>
 
@@ -74,6 +83,7 @@ const TodoItem = ({ todo, onComplete, onAssign, onAddSubTodo }: TodoItemProps) =
               onComplete={onComplete}
               onAssign={(todoId, assignee) => onAssign(todoId, assignee, true)}
               onAddSubTodo={onAddSubTodo}
+              onDelete={(todoId) => onDelete(todoId, true)}
             />
           ))}
         </div>
