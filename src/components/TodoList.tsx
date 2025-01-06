@@ -13,9 +13,9 @@ const TodoList = () => {
   const [isSignatureModalOpen, setIsSignatureModalOpen] = useState(false);
   const { todos, addTodo, deleteTodo, completeTodo, assignTodo } = useTodos();
 
-  const handleAddTodo = async (parentId: string | null = null) => {
-    if (!newTodo.trim()) return;
-    await addTodo(newTodo, parentId);
+  const handleAddTodo = async (text: string, parentId: string | null = null) => {
+    if (!text.trim()) return;
+    await addTodo(text, parentId);
     setNewTodo('');
   };
 
@@ -49,9 +49,9 @@ const TodoList = () => {
           onChange={(e) => setNewTodo(e.target.value)}
           placeholder="Add a new todo..."
           className="flex-1"
-          onKeyPress={(e) => e.key === 'Enter' && handleAddTodo()}
+          onKeyPress={(e) => e.key === 'Enter' && handleAddTodo(newTodo)}
         />
-        <Button onClick={() => handleAddTodo()} className="bg-indigo-600 hover:bg-indigo-700">
+        <Button onClick={() => handleAddTodo(newTodo)} className="bg-indigo-600 hover:bg-indigo-700">
           <Plus className="w-4 h-4 mr-2" />
           Add Todo
         </Button>
@@ -64,7 +64,7 @@ const TodoList = () => {
             todo={todo}
             onComplete={handleTodoCompletion}
             onAssign={assignTodo}
-            onAddSubTodo={(parentId) => handleAddTodo(parentId)}
+            onAddSubTodo={(parentId, text) => handleAddTodo(text, parentId)}
             onDelete={deleteTodo}
           />
         ))}

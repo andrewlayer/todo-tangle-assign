@@ -10,7 +10,7 @@ interface TodoItemProps {
   todo: Todo;
   onComplete: (todo: Todo) => void;
   onAssign: (todoId: string, assignee: string, isSubTodo?: boolean) => void;
-  onAddSubTodo: (parentId: string) => void;
+  onAddSubTodo: (parentId: string, text: string) => void;
   onDelete: (todoId: string, isSubTodo?: boolean) => void;
 }
 
@@ -98,7 +98,8 @@ const TodoItem = ({ todo, onComplete, onAssign, onAddSubTodo, onDelete }: TodoIt
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onAdd={(text) => {
-          onAddSubTodo(todo.id);
+          onAddSubTodo(todo.id, text);
+          setIsModalOpen(false);
         }}
       />
 
