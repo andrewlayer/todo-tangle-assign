@@ -45,8 +45,8 @@ const TodoItem = ({ todo, onComplete, onAssign, onAddSubTodo, onDelete }: TodoIt
             onClick={() => !todo.completed && onComplete(todo)}
             className={cn(
               "w-5 h-5 rounded-full border-2 flex items-center justify-center",
-              "transition-colors hover:border-indigo-600",
-              todo.completed ? "bg-indigo-600 border-indigo-600" : "border-gray-300"
+              "transition-colors hover:border-primary",
+              todo.completed ? "bg-primary border-primary" : "border-gray-300"
             )}
           >
             {todo.completed && <Check className="w-3 h-3 text-white" />}

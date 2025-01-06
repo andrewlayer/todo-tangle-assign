@@ -51,7 +51,7 @@ const TodoList = () => {
           className="flex-1"
           onKeyPress={(e) => e.key === 'Enter' && handleAddTodo(newTodo)}
         />
-        <Button onClick={() => handleAddTodo(newTodo)} className="bg-indigo-600 hover:bg-indigo-700">
+        <Button onClick={() => handleAddTodo(newTodo)} className="bg-primary hover:bg-primary-hover text-white">
           <Plus className="w-4 h-4 mr-2" />
           Add Todo
         </Button>
