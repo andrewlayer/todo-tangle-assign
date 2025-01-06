@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Check, Plus, Trash2, MessageSquare } from 'lucide-react';
+import { Check, Plus, Trash2, MessageSquare, Edit, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -29,6 +29,8 @@ const TodoItem = ({
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [notes, setNotes] = useState(todo.notes || '');
   const [isNotesOpen, setIsNotesOpen] = useState(false);
+  const [isEditingNotes, setIsEditingNotes] = useState(false);
+  const [tempNotes, setTempNotes] = useState('');
 
   useEffect(() => {
     setAssignee(todo.assigned_to || '');
@@ -46,14 +48,24 @@ const TodoItem = ({
     }
   };
 
-  const handleNotesChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setNotes(e.target.value);
+  const handleEditNotes = () => {
+    setTempNotes(notes);
+    setIsEditingNotes(true);
   };
 
-  const handleNotesBlur = () => {
-    if (notes !== todo.notes) {
-      onUpdateNotes(todo.id, notes);
-    }
+  const handleSaveNotes = () => {
+    onUpdateNotes(todo.id, tempNotes);
+    setIsEditingNotes(false);
+  };
+
+  const handleCancelEdit = () => {
+    setTempNotes(notes);
+    setIsEditingNotes(false);
+  };
+
+  const handleDeleteNotes = () => {
+    onUpdateNotes(todo.id, '');
+    setIsNotesOpen(false);
   };
 
   return (
@@ -120,13 +132,67 @@ const TodoItem = ({
 
         <Collapsible open={isNotesOpen} onOpenChange={setIsNotesOpen}>
           <CollapsibleContent className="mt-4">
-            <Textarea
-              placeholder="Add notes..."
-              value={notes}
-              onChange={handleNotesChange}
-              onBlur={handleNotesBlur}
-              className="w-full min-h-[100px] text-sm"
-            />
+            <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+              <div className="flex justify-between items-center mb-2">
+                <h4 className="text-sm font-medium text-gray-700">Notes</h4>
+                <div className="flex gap-2">
+                  {!isEditingNotes ? (
+                    <>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={handleEditNotes}
+                        className="h-8 px-2"
+                      >
+                        <Edit className="w-4 h-4" />
+                      </Button>
+                      {notes && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={handleDeleteNotes}
+                          className="h-8 px-2 text-red-500 hover:text-red-600"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      )}
+                    </>
+                  ) : (
+                    <>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={handleSaveNotes}
+                        className="h-8 px-2 text-green-500 hover:text-green-600"
+                      >
+                        <Check className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={handleCancelEdit}
+                        className="h-8 px-2 text-red-500 hover:text-red-600"
+                      >
+                        <X className="w-4 h-4" />
+                      </Button>
+                    </>
+                  )}
+                </div>
+              </div>
+              
+              {isEditingNotes ? (
+                <Textarea
+                  value={tempNotes}
+                  onChange={(e) => setTempNotes(e.target.value)}
+                  placeholder="Add notes..."
+                  className="w-full min-h-[100px] text-sm"
+                />
+              ) : (
+                <div className="text-sm text-gray-600 whitespace-pre-wrap">
+                  {notes || "No notes added yet"}
+                </div>
+              )}
+            </div>
           </CollapsibleContent>
         </Collapsible>
 

@@ -1,7 +1,16 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { Todo } from '@/types/todo';
 import { useToast } from '@/components/ui/use-toast';
+import { Todo } from '@/types/todo';
+import { buildTodoTree } from '@/utils/todoUtils';
+import {
+  fetchTodosFromSupabase,
+  addTodoToSupabase,
+  deleteTodoFromSupabase,
+  completeTodoInSupabase,
+  assignTodoInSupabase,
+  updateNotesInSupabase
+} from './useSupabaseTodos';
+import { supabase } from '@/integrations/supabase/client';
 
 export const useTodos = () => {
   const [todos, setTodos] = useState<Todo[]>([]);
@@ -9,36 +18,8 @@ export const useTodos = () => {
 
   const fetchTodos = async () => {
     try {
-      const { data, error } = await supabase
-        .from('todos')
-        .select('*')
-        .order('created_at', { ascending: true });
-
-      if (error) throw error;
-
-      // Transform the flat data into a nested structure with unlimited depth
-      const todoMap = new Map<string, Todo>();
-      
-      // First pass: create Todo objects
-      data.forEach(todo => {
-        todoMap.set(todo.id, { ...todo, subTodos: [] });
-      });
-      
-      // Second pass: build the tree
-      const rootTodos: Todo[] = [];
-      data.forEach(todo => {
-        const todoObj = todoMap.get(todo.id)!;
-        if (todo.parent_id) {
-          const parent = todoMap.get(todo.parent_id);
-          if (parent) {
-            parent.subTodos.push(todoObj);
-          }
-        } else {
-          rootTodos.push(todoObj);
-        }
-      });
-
-      setTodos(rootTodos);
+      const data = await fetchTodosFromSupabase();
+      setTodos(buildTodoTree(data));
     } catch (error) {
       console.error('Error fetching todos:', error);
       toast({
@@ -51,25 +32,12 @@ export const useTodos = () => {
 
   const addTodo = async (text: string, parentId: string | null = null) => {
     try {
-      const { data, error } = await supabase
-        .from('todos')
-        .insert([{
-          text,
-          parent_id: parentId,
-        }])
-        .select()
-        .single();
-
-      if (error) throw error;
-      
+      await addTodoToSupabase(text, parentId);
       await fetchTodos();
-
       toast({
         title: "Todo added",
         description: parentId ? "Sub-todo added successfully" : "Todo added successfully",
       });
-
-      return data;
     } catch (error) {
       console.error('Error adding todo:', error);
       toast({
@@ -83,38 +51,8 @@ export const useTodos = () => {
 
   const deleteTodo = async (todoId: string) => {
     try {
-      // First delete all sub-todos recursively
-      const getAllChildIds = async (id: string): Promise<string[]> => {
-        const { data } = await supabase
-          .from('todos')
-          .select('id')
-          .eq('parent_id', id);
-        
-        if (!data || data.length === 0) return [];
-        
-        const childIds = data.map(t => t.id);
-        const grandChildIds = await Promise.all(childIds.map(getAllChildIds));
-        return [...childIds, ...grandChildIds.flat()];
-      };
-
-      const childIds = await getAllChildIds(todoId);
-      if (childIds.length > 0) {
-        await supabase
-          .from('todos')
-          .delete()
-          .in('id', childIds);
-      }
-
-      // Then delete the main todo
-      const { error } = await supabase
-        .from('todos')
-        .delete()
-        .eq('id', todoId);
-
-      if (error) throw error;
-
+      await deleteTodoFromSupabase(todoId);
       await fetchTodos();
-
       toast({
         title: "Todo deleted",
         description: "Task has been removed",
@@ -131,45 +69,11 @@ export const useTodos = () => {
 
   const completeTodo = async (todoId: string, signature: string) => {
     try {
-      // Helper function to get all descendant todos
-      const getAllDescendants = async (id: string): Promise<string[]> => {
-        const { data } = await supabase
-          .from('todos')
-          .select('id')
-          .eq('parent_id', id);
-        
-        if (!data || data.length === 0) return [];
-        
-        const childIds = data.map(t => t.id);
-        const grandChildIds = await Promise.all(childIds.map(getAllDescendants));
-        return [...childIds, ...grandChildIds.flat()];
-      };
-
-      // Get all descendant todos
-      const descendantIds = await getAllDescendants(todoId);
-
-      // Complete all uncompleted descendants with the same signature
-      if (descendantIds.length > 0) {
-        await supabase
-          .from('todos')
-          .update({ completed: true, signature })
-          .in('id', descendantIds)
-          .eq('completed', false);
-      }
-
-      // Complete the main todo
-      const { error } = await supabase
-        .from('todos')
-        .update({ completed: true, signature })
-        .eq('id', todoId);
-
-      if (error) throw error;
-
+      await completeTodoInSupabase(todoId, signature);
       await fetchTodos();
-
       toast({
         title: "Todo completed",
-        description: `Task and uncompleted subtasks marked as complete by ${signature}`,
+        description: `Task marked as complete by ${signature}`,
       });
     } catch (error) {
       console.error('Error completing todo:', error);
@@ -183,15 +87,7 @@ export const useTodos = () => {
 
   const assignTodo = async (todoId: string, assignee: string) => {
     try {
-      const { error } = await supabase
-        .from('todos')
-        .update({
-          assigned_to: assignee
-        })
-        .eq('id', todoId);
-
-      if (error) throw error;
-
+      await assignTodoInSupabase(todoId, assignee);
       await fetchTodos();
     } catch (error) {
       console.error('Error assigning todo:', error);
@@ -205,15 +101,8 @@ export const useTodos = () => {
 
   const updateNotes = async (todoId: string, notes: string) => {
     try {
-      const { error } = await supabase
-        .from('todos')
-        .update({ notes })
-        .eq('id', todoId);
-
-      if (error) throw error;
-
+      await updateNotesInSupabase(todoId, notes);
       await fetchTodos();
-
       toast({
         title: "Notes updated",
         description: "Task notes have been saved",
@@ -231,7 +120,6 @@ export const useTodos = () => {
   useEffect(() => {
     fetchTodos();
     
-    // Subscribe to changes
     const channel = supabase
       .channel('public:todos')
       .on('postgres_changes', 
