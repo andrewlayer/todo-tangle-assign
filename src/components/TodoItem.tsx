@@ -134,7 +134,7 @@ const TodoItem = ({
         data-todo-text={todo.text}
       >
         <div className="flex items-center gap-3">
-          <div className="cursor-grab opacity-0 group-hover:opacity-100 transition-opacity">
+          <div className="cursor-grab">
             <GripVertical className="w-4 h-4 text-gray-400" />
           </div>
           
@@ -148,7 +148,7 @@ const TodoItem = ({
           >
             {todo.completed && <Check className="w-3 h-3 text-white" />}
           </button>
-          
+
           <TodoText
             text={todo.text}
             isEditing={isEditing}
