@@ -55,42 +55,44 @@ const TodoContent = ({
 }: TodoContentProps) => {
   return (
     <>
-      <div className="flex items-center gap-3">
-        {todo.subTodos.length > 0 && (
-          <button
-            onClick={onToggleExpand}
-            className="text-gray-400 hover:text-gray-600 transition-colors"
-          >
-            <ChevronRight
-              className={cn(
-                "w-4 h-4 transition-transform",
-                isExpanded && "transform rotate-90"
-              )}
-            />
-          </button>
-        )}
-        
-        <button
-          onClick={todo.completed ? onUncomplete : onComplete}
-          className={cn(
-            "w-5 h-5 rounded-full border-2 flex items-center justify-center",
-            "transition-colors hover:border-[#7A65FF]",
-            todo.completed ? "bg-[#7A65FF] border-[#7A65FF]" : "border-gray-300"
+      <div className="flex items-center gap-3 w-full">
+        <div className="flex items-center gap-3 flex-1 min-w-0">
+          {todo.subTodos.length > 0 && (
+            <button
+              onClick={onToggleExpand}
+              className="text-gray-400 hover:text-gray-600 transition-colors flex-shrink-0"
+            >
+              <ChevronRight
+                className={cn(
+                  "w-4 h-4 transition-transform",
+                  isExpanded && "transform rotate-90"
+                )}
+              />
+            </button>
           )}
-        >
-          {todo.completed && <Check className="w-3 h-3 text-white" />}
-        </button>
+          
+          <button
+            onClick={todo.completed ? onUncomplete : onComplete}
+            className={cn(
+              "w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0",
+              "transition-colors hover:border-[#7A65FF]",
+              todo.completed ? "bg-[#7A65FF] border-[#7A65FF]" : "border-gray-300"
+            )}
+          >
+            {todo.completed && <Check className="w-3 h-3 text-white" />}
+          </button>
 
-        <TodoText
-          text={todo.text}
-          isEditing={isEditing}
-          isCompleted={todo.completed}
-          editedText={editedText}
-          onEditedTextChange={onEditedTextChange}
-          onTextEdit={onTextEdit}
-          onTextClick={onTextClick}
-          onTextSave={onTextSave}
-        />
+          <TodoText
+            text={todo.text}
+            isEditing={isEditing}
+            isCompleted={todo.completed}
+            editedText={editedText}
+            onEditedTextChange={onEditedTextChange}
+            onTextEdit={onTextEdit}
+            onTextClick={onTextClick}
+            onTextSave={onTextSave}
+          />
+        </div>
 
         <TodoControls
           assignee={assignee}
