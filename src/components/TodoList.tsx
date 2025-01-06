@@ -23,8 +23,9 @@ const TodoList = () => {
       .channel('public:todos')
       .on('postgres_changes', 
         { event: '*', schema: 'public', table: 'todos' }, 
-        () => {
-          fetchTodos();
+        (payload) => {
+          console.log('Change received!', payload);
+          fetchTodos(); // Refresh todos when any change occurs
         }
       )
       .subscribe();
@@ -190,7 +191,7 @@ const TodoList = () => {
 
   return (
     <div className="max-w-2xl mx-auto p-6 space-y-6">
-      <h1 className="text-3xl font-bold text-gray-900 mb-8">Todo List</h1>
+      <h1 className="text-3xl font-bold text-gray-900 mb-8">Layer's Todos</h1>
       
       <div className="flex gap-2">
         <Input
