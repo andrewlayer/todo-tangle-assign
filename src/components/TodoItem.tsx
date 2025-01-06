@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Check, Plus, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -14,6 +14,23 @@ interface TodoItemProps {
 }
 
 const TodoItem = ({ todo, onComplete, onAssign, onAddSubTodo, onDelete }: TodoItemProps) => {
+  const [assignee, setAssignee] = useState(todo.assigned_to || '');
+
+  useEffect(() => {
+    setAssignee(todo.assigned_to || '');
+  }, [todo.assigned_to]);
+
+  const handleAssignChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue = e.target.value;
+    setAssignee(newValue);
+  };
+
+  const handleAssignBlur = () => {
+    if (assignee !== todo.assigned_to) {
+      onAssign(todo.id, assignee);
+    }
+  };
+
   return (
     <div className="space-y-2">
       <div className={cn(
@@ -44,8 +61,9 @@ const TodoItem = ({ todo, onComplete, onAssign, onAddSubTodo, onDelete }: TodoIt
             <Input
               type="text"
               placeholder="Assign to..."
-              value={todo.assigned_to}
-              onChange={(e) => onAssign(todo.id, e.target.value)}
+              value={assignee}
+              onChange={handleAssignChange}
+              onBlur={handleAssignBlur}
               className="w-32 h-8 text-sm"
             />
             <Button
