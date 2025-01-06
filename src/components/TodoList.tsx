@@ -11,7 +11,7 @@ const TodoList = () => {
   const [newTodo, setNewTodo] = useState('');
   const [selectedTodo, setSelectedTodo] = useState<Todo | null>(null);
   const [isSignatureModalOpen, setIsSignatureModalOpen] = useState(false);
-  const { todos, addTodo, deleteTodo, completeTodo, assignTodo } = useTodos();
+  const { todos, addTodo, deleteTodo, completeTodo, assignTodo, updateNotes } = useTodos();
 
   const handleAddTodo = async (text: string, parentId: string | null = null) => {
     if (!text.trim()) return;
@@ -51,7 +51,7 @@ const TodoList = () => {
           className="flex-1"
           onKeyPress={(e) => e.key === 'Enter' && handleAddTodo(newTodo)}
         />
-        <Button onClick={() => handleAddTodo(newTodo)} className="bg-primary hover:bg-primary-hover text-white">
+        <Button onClick={() => handleAddTodo(newTodo)} className="bg-[#7A65FF] hover:bg-[#6952FF] text-white">
           <Plus className="w-4 h-4 mr-2" />
           Add Todo
         </Button>
@@ -66,6 +66,7 @@ const TodoList = () => {
             onAssign={assignTodo}
             onAddSubTodo={(parentId, text) => handleAddTodo(text, parentId)}
             onDelete={deleteTodo}
+            onUpdateNotes={updateNotes}
           />
         ))}
       </div>

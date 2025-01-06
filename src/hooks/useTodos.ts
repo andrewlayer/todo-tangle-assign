@@ -203,6 +203,31 @@ export const useTodos = () => {
     }
   };
 
+  const updateNotes = async (todoId: string, notes: string) => {
+    try {
+      const { error } = await supabase
+        .from('todos')
+        .update({ notes })
+        .eq('id', todoId);
+
+      if (error) throw error;
+
+      await fetchTodos();
+
+      toast({
+        title: "Notes updated",
+        description: "Task notes have been saved",
+      });
+    } catch (error) {
+      console.error('Error updating notes:', error);
+      toast({
+        title: "Error updating notes",
+        description: "Please try again later",
+        variant: "destructive"
+      });
+    }
+  };
+
   useEffect(() => {
     fetchTodos();
     
@@ -228,6 +253,7 @@ export const useTodos = () => {
     addTodo,
     deleteTodo,
     completeTodo,
-    assignTodo
+    assignTodo,
+    updateNotes
   };
 };
