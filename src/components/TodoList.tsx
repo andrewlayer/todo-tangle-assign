@@ -22,10 +22,45 @@ const TodoList = () => {
     const channel = supabase
       .channel('public:todos')
       .on('postgres_changes', 
-        { event: '*', schema: 'public', table: 'todos' }, 
+        { event: 'INSERT', schema: 'public', table: 'todos' }, 
         (payload) => {
-          console.log('Change received!', payload);
-          fetchTodos(); // Refresh todos when any change occurs
+          console.log('Insert received!', payload);
+          const newTodo = payload.new as Todo;
+          if (!newTodo.parent_id) {
+            setTodos(currentTodos => [...currentTodos, { ...newTodo, subTodos: [] }]);
+          } else {
+            setTodos(currentTodos => 
+              currentTodos.map(todo => 
+                todo.id === newTodo.parent_id 
+                  ? { ...todo, subTodos: [...todo.subTodos, { ...newTodo, subTodos: [] }] }
+                  : todo
+              )
+            );
+          }
+        }
+      )
+      .on('postgres_changes',
+        { event: 'DELETE', schema: 'public', table: 'todos' },
+        (payload) => {
+          console.log('Delete received!', payload);
+          const deletedTodo = payload.old as Todo;
+          setTodos(currentTodos => 
+            currentTodos.filter(todo => todo.id !== deletedTodo.id)
+          );
+        }
+      )
+      .on('postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'todos' },
+        (payload) => {
+          console.log('Update received!', payload);
+          const updatedTodo = payload.new as Todo;
+          setTodos(currentTodos =>
+            currentTodos.map(todo =>
+              todo.id === updatedTodo.id
+                ? { ...todo, ...updatedTodo }
+                : todo
+            )
+          );
         }
       )
       .subscribe();
