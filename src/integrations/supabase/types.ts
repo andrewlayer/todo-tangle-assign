@@ -24,6 +24,44 @@ export type Database = {
         }
         Relationships: []
       }
+      todos: {
+        Row: {
+          assigned_to: string | null
+          completed: boolean | null
+          created_at: string
+          id: string
+          parent_id: string | null
+          signature: string | null
+          text: string
+        }
+        Insert: {
+          assigned_to?: string | null
+          completed?: boolean | null
+          created_at?: string
+          id?: string
+          parent_id?: string | null
+          signature?: string | null
+          text: string
+        }
+        Update: {
+          assigned_to?: string | null
+          completed?: boolean | null
+          created_at?: string
+          id?: string
+          parent_id?: string | null
+          signature?: string | null
+          text?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "todos_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "todos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never

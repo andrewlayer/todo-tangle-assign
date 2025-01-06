@@ -1,11 +1,12 @@
-import React, { useState } from 'react';
-import { Plus, User, Trash2 } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Plus, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import TodoItem from './TodoItem';
 import SignatureModal from './SignatureModal';
 import { Todo } from '@/types/todo';
 import { useToast } from '@/components/ui/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 const TodoList = () => {
   const [todos, setTodos] = useState<Todo[]>([]);
@@ -14,7 +15,58 @@ const TodoList = () => {
   const [isSignatureModalOpen, setIsSignatureModalOpen] = useState(false);
   const { toast } = useToast();
 
-  const addTodo = (parentId: string | null = null) => {
+  useEffect(() => {
+    fetchTodos();
+    
+    // Subscribe to changes
+    const channel = supabase
+      .channel('public:todos')
+      .on('postgres_changes', 
+        { event: '*', schema: 'public', table: 'todos' }, 
+        () => {
+          fetchTodos();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
+  const fetchTodos = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('todos')
+        .select('*')
+        .order('created_at', { ascending: true });
+
+      if (error) throw error;
+
+      // Transform the flat data into a nested structure
+      const transformedTodos = data.reduce((acc: Todo[], todo) => {
+        if (!todo.parent_id) {
+          const subTodos = data.filter(t => t.parent_id === todo.id);
+          acc.push({
+            ...todo,
+            subTodos: subTodos.map(st => ({ ...st, subTodos: [] }))
+          });
+        }
+        return acc;
+      }, []);
+
+      setTodos(transformedTodos);
+    } catch (error) {
+      console.error('Error fetching todos:', error);
+      toast({
+        title: "Error fetching todos",
+        description: "Please try again later",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const addTodo = async (parentId: string | null = null) => {
     if (!newTodo.trim()) {
       toast({
         title: "Cannot add empty todo",
@@ -24,39 +76,31 @@ const TodoList = () => {
       return;
     }
 
-    const newTodoItem: Todo = {
-      id: Date.now().toString(),
-      text: newTodo,
-      completed: false,
-      assignedTo: '',
-      parentId,
-      signature: '',
-      subTodos: [],
-    };
+    try {
+      const { data, error } = await supabase
+        .from('todos')
+        .insert([{
+          text: newTodo,
+          parent_id: parentId,
+        }])
+        .select()
+        .single();
 
-    if (parentId) {
-      setTodos(prevTodos => {
-        const updateTodoWithSubTodos = (todos: Todo[]): Todo[] => {
-          return todos.map(todo => {
-            if (todo.id === parentId) {
-              return { ...todo, subTodos: [...todo.subTodos, newTodoItem] };
-            }
-            if (todo.subTodos.length > 0) {
-              return { ...todo, subTodos: updateTodoWithSubTodos(todo.subTodos) };
-            }
-            return todo;
-          });
-        };
-        return updateTodoWithSubTodos(prevTodos);
+      if (error) throw error;
+
+      setNewTodo('');
+      toast({
+        title: "Todo added",
+        description: parentId ? "Sub-todo added successfully" : "Todo added successfully",
       });
-    } else {
-      setTodos(prevTodos => [...prevTodos, newTodoItem]);
+    } catch (error) {
+      console.error('Error adding todo:', error);
+      toast({
+        title: "Error adding todo",
+        description: "Please try again later",
+        variant: "destructive"
+      });
     }
-    setNewTodo('');
-    toast({
-      title: "Todo added",
-      description: parentId ? "Sub-todo added successfully" : "Todo added successfully",
-    });
   };
 
   const handleTodoCompletion = (todo: Todo) => {
@@ -64,67 +108,84 @@ const TodoList = () => {
     setIsSignatureModalOpen(true);
   };
 
-  const handleSignatureSubmit = (signature: string) => {
-    setTodos(prevTodos => 
-      prevTodos.map(todo => {
-        if (todo.id === selectedTodo?.id) {
-          return { ...todo, completed: true, signature };
-        }
-        if (todo.subTodos.some(st => st.id === selectedTodo?.id)) {
-          return {
-            ...todo,
-            subTodos: todo.subTodos.map(st =>
-              st.id === selectedTodo?.id
-                ? { ...st, completed: true, signature }
-                : st
-            ),
-          };
-        }
-        return todo;
-      })
-    );
-    setIsSignatureModalOpen(false);
-    setSelectedTodo(null);
-    toast({
-      title: "Todo completed",
-      description: `Task marked as complete by ${signature}`,
-    });
-  };
+  const handleSignatureSubmit = async (signature: string) => {
+    if (!selectedTodo) return;
 
-  const assignTodo = (todoId: string, assignee: string, isSubTodo: boolean = false) => {
-    setTodos(prevTodos =>
-      prevTodos.map(todo => {
-        if (!isSubTodo && todo.id === todoId) {
-          return { ...todo, assignedTo: assignee };
-        }
-        if (isSubTodo) {
-          return {
-            ...todo,
-            subTodos: todo.subTodos.map(st =>
-              st.id === todoId ? { ...st, assignedTo: assignee } : st
-            ),
-          };
-        }
-        return todo;
-      })
-    );
-  };
+    try {
+      const { error } = await supabase
+        .from('todos')
+        .update({
+          completed: true,
+          signature
+        })
+        .eq('id', selectedTodo.id);
 
-  const deleteTodo = (todoId: string, isSubTodo: boolean = false) => {
-    if (!isSubTodo) {
-      setTodos(prevTodos => prevTodos.filter(todo => todo.id !== todoId));
-    } else {
-      setTodos(prevTodos =>
-        prevTodos.map(todo => ({
-          ...todo,
-          subTodos: todo.subTodos.filter(st => st.id !== todoId),
-        }))
-      );
+      if (error) throw error;
+
+      setIsSignatureModalOpen(false);
+      setSelectedTodo(null);
+      toast({
+        title: "Todo completed",
+        description: `Task marked as complete by ${signature}`,
+      });
+    } catch (error) {
+      console.error('Error completing todo:', error);
+      toast({
+        title: "Error completing todo",
+        description: "Please try again later",
+        variant: "destructive"
+      });
     }
-    toast({
-      title: "Todo deleted",
-      description: "Task has been removed",
-    });
+  };
+
+  const assignTodo = async (todoId: string, assignee: string) => {
+    try {
+      const { error } = await supabase
+        .from('todos')
+        .update({
+          assigned_to: assignee
+        })
+        .eq('id', todoId);
+
+      if (error) throw error;
+    } catch (error) {
+      console.error('Error assigning todo:', error);
+      toast({
+        title: "Error assigning todo",
+        description: "Please try again later",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const deleteTodo = async (todoId: string) => {
+    try {
+      // First delete all sub-todos
+      await supabase
+        .from('todos')
+        .delete()
+        .eq('parent_id', todoId);
+
+      // Then delete the main todo
+      const { error } = await supabase
+        .from('todos')
+        .delete()
+        .eq('id', todoId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Todo deleted",
+        description: "Task has been removed",
+      });
+    } catch (error) {
+      console.error('Error deleting todo:', error);
+      toast({
+        title: "Error deleting todo",
+        description: "Please try again later",
+        variant: "destructive"
+      });
+    }
   };
 
   return (
