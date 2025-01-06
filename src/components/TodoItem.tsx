@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Check } from 'lucide-react';
+import { Check, GripVertical } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Todo } from '@/types/todo';
 import AddSubTodoModal from './AddSubTodoModal';
@@ -85,14 +85,59 @@ const TodoItem = ({
     setIsEditing(false);
   };
 
+  const handleDragStart = (e: React.DragEvent<HTMLDivElement>) => {
+    e.dataTransfer.setData('text/plain', todo.id);
+    e.currentTarget.classList.add('opacity-50');
+  };
+
+  const handleDragEnd = (e: React.DragEvent<HTMLDivElement>) => {
+    e.currentTarget.classList.remove('opacity-50');
+  };
+
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.currentTarget.classList.add('border-[#7A65FF]');
+  };
+
+  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+    e.currentTarget.classList.remove('border-[#7A65FF]');
+  };
+
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.currentTarget.classList.remove('border-[#7A65FF]');
+    const draggedTodoId = e.dataTransfer.getData('text/plain');
+    if (draggedTodoId !== todo.id) {
+      const draggedTodo = document.querySelector(`[data-todo-id="${draggedTodoId}"]`);
+      if (draggedTodo) {
+        onAddSubTodo(todo.id, draggedTodo.getAttribute('data-todo-text') || '');
+        onDelete(draggedTodoId);
+      }
+    }
+  };
+
   return (
     <div className="space-y-2">
-      <div className={cn(
-        "p-4 rounded-lg border border-gray-200 shadow-sm transition-all",
-        "hover:shadow-md bg-white",
-        todo.completed && "bg-gray-50 border-gray-100"
-      )}>
+      <div 
+        className={cn(
+          "p-4 rounded-lg border border-gray-200 shadow-sm transition-all",
+          "hover:shadow-md bg-white group",
+          todo.completed && "bg-gray-50 border-gray-100"
+        )}
+        draggable
+        onDragStart={handleDragStart}
+        onDragEnd={handleDragEnd}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+        data-todo-id={todo.id}
+        data-todo-text={todo.text}
+      >
         <div className="flex items-center gap-3">
+          <div className="cursor-grab opacity-0 group-hover:opacity-100 transition-opacity">
+            <GripVertical className="w-4 h-4 text-gray-400" />
+          </div>
+          
           <button
             onClick={handleToggleComplete}
             className={cn(
