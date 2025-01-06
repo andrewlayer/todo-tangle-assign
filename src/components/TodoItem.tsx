@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Todo } from '@/types/todo';
 import { cn } from '@/lib/utils';
+import AddSubTodoModal from './AddSubTodoModal';
 
 interface TodoItemProps {
   todo: Todo;
@@ -15,6 +16,7 @@ interface TodoItemProps {
 
 const TodoItem = ({ todo, onComplete, onAssign, onAddSubTodo, onDelete }: TodoItemProps) => {
   const [assignee, setAssignee] = useState(todo.assigned_to || '');
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     setAssignee(todo.assigned_to || '');
@@ -69,7 +71,7 @@ const TodoItem = ({ todo, onComplete, onAssign, onAddSubTodo, onDelete }: TodoIt
             <Button
               variant="outline"
               size="sm"
-              onClick={() => onAddSubTodo(todo.id)}
+              onClick={() => setIsModalOpen(true)}
               className="h-8"
             >
               <Plus className="w-4 h-4" />
@@ -91,6 +93,14 @@ const TodoItem = ({ todo, onComplete, onAssign, onAddSubTodo, onDelete }: TodoIt
           </div>
         )}
       </div>
+
+      <AddSubTodoModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onAdd={(text) => {
+          onAddSubTodo(todo.id);
+        }}
+      />
 
       {todo.subTodos.length > 0 && (
         <div className="pl-8 space-y-2">
