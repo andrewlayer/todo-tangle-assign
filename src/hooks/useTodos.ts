@@ -16,19 +16,29 @@ export const useTodos = () => {
 
       if (error) throw error;
 
-      // Transform the flat data into a nested structure
-      const transformedTodos = data.reduce((acc: Todo[], todo) => {
-        if (!todo.parent_id) {
-          const subTodos = data.filter(t => t.parent_id === todo.id);
-          acc.push({
-            ...todo,
-            subTodos: subTodos.map(st => ({ ...st, subTodos: [] }))
-          });
+      // Transform the flat data into a nested structure with unlimited depth
+      const todoMap = new Map<string, Todo>();
+      
+      // First pass: create Todo objects
+      data.forEach(todo => {
+        todoMap.set(todo.id, { ...todo, subTodos: [] });
+      });
+      
+      // Second pass: build the tree
+      const rootTodos: Todo[] = [];
+      data.forEach(todo => {
+        const todoObj = todoMap.get(todo.id)!;
+        if (todo.parent_id) {
+          const parent = todoMap.get(todo.parent_id);
+          if (parent) {
+            parent.subTodos.push(todoObj);
+          }
+        } else {
+          rootTodos.push(todoObj);
         }
-        return acc;
-      }, []);
+      });
 
-      setTodos(transformedTodos);
+      setTodos(rootTodos);
     } catch (error) {
       console.error('Error fetching todos:', error);
       toast({
@@ -52,7 +62,7 @@ export const useTodos = () => {
 
       if (error) throw error;
       
-      await fetchTodos(); // Refetch after adding
+      await fetchTodos();
 
       toast({
         title: "Todo added",
@@ -73,11 +83,27 @@ export const useTodos = () => {
 
   const deleteTodo = async (todoId: string) => {
     try {
-      // First delete all sub-todos
-      await supabase
-        .from('todos')
-        .delete()
-        .eq('parent_id', todoId);
+      // First delete all sub-todos recursively
+      const getAllChildIds = async (id: string): Promise<string[]> => {
+        const { data } = await supabase
+          .from('todos')
+          .select('id')
+          .eq('parent_id', id);
+        
+        if (!data || data.length === 0) return [];
+        
+        const childIds = data.map(t => t.id);
+        const grandChildIds = await Promise.all(childIds.map(getAllChildIds));
+        return [...childIds, ...grandChildIds.flat()];
+      };
+
+      const childIds = await getAllChildIds(todoId);
+      if (childIds.length > 0) {
+        await supabase
+          .from('todos')
+          .delete()
+          .in('id', childIds);
+      }
 
       // Then delete the main todo
       const { error } = await supabase
@@ -87,7 +113,7 @@ export const useTodos = () => {
 
       if (error) throw error;
 
-      await fetchTodos(); // Refetch after deleting
+      await fetchTodos();
 
       toast({
         title: "Todo deleted",
@@ -105,21 +131,45 @@ export const useTodos = () => {
 
   const completeTodo = async (todoId: string, signature: string) => {
     try {
+      // Helper function to get all descendant todos
+      const getAllDescendants = async (id: string): Promise<string[]> => {
+        const { data } = await supabase
+          .from('todos')
+          .select('id')
+          .eq('parent_id', id);
+        
+        if (!data || data.length === 0) return [];
+        
+        const childIds = data.map(t => t.id);
+        const grandChildIds = await Promise.all(childIds.map(getAllDescendants));
+        return [...childIds, ...grandChildIds.flat()];
+      };
+
+      // Get all descendant todos
+      const descendantIds = await getAllDescendants(todoId);
+
+      // Complete all uncompleted descendants with the same signature
+      if (descendantIds.length > 0) {
+        await supabase
+          .from('todos')
+          .update({ completed: true, signature })
+          .in('id', descendantIds)
+          .eq('completed', false);
+      }
+
+      // Complete the main todo
       const { error } = await supabase
         .from('todos')
-        .update({
-          completed: true,
-          signature
-        })
+        .update({ completed: true, signature })
         .eq('id', todoId);
 
       if (error) throw error;
 
-      await fetchTodos(); // Refetch after completing
+      await fetchTodos();
 
       toast({
         title: "Todo completed",
-        description: `Task marked as complete by ${signature}`,
+        description: `Task and uncompleted subtasks marked as complete by ${signature}`,
       });
     } catch (error) {
       console.error('Error completing todo:', error);
@@ -142,7 +192,7 @@ export const useTodos = () => {
 
       if (error) throw error;
 
-      await fetchTodos(); // Refetch after assigning
+      await fetchTodos();
     } catch (error) {
       console.error('Error assigning todo:', error);
       toast({
@@ -163,7 +213,7 @@ export const useTodos = () => {
         { event: '*', schema: 'public', table: 'todos' }, 
         () => {
           console.log('Database change detected, refetching todos');
-          fetchTodos(); // Refresh todos when any change occurs
+          fetchTodos();
         }
       )
       .subscribe();
