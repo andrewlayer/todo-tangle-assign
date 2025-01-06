@@ -44,7 +44,7 @@ const TodoItem = ({ todo, onComplete, onAssign, onAddSubTodo, onDelete }: TodoIt
             <Input
               type="text"
               placeholder="Assign to..."
-              value={todo.assignedTo}
+              value={todo.assigned_to}
               onChange={(e) => onAssign(todo.id, e.target.value)}
               className="w-32 h-8 text-sm"
             />
