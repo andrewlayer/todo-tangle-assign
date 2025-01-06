@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Check, Plus, Trash2, MessageSquare } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Todo } from '@/types/todo';
+import { Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Todo } from '@/types/todo';
 import AddSubTodoModal from './AddSubTodoModal';
-import { Collapsible, CollapsibleContent } from '@/components/ui/collapsible';
+import TodoControls from './todo/TodoControls';
+import TodoText from './todo/TodoText';
+import TodoNotes from './todo/TodoNotes';
 
 interface TodoItemProps {
   todo: Todo;
@@ -43,8 +42,7 @@ const TodoItem = ({
   }, [todo.assigned_to, todo.notes, todo.text]);
 
   const handleAssignChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newValue = e.target.value;
-    setAssignee(newValue);
+    setAssignee(e.target.value);
   };
 
   const handleAssignBlur = () => {
@@ -106,75 +104,34 @@ const TodoItem = ({
             {todo.completed && <Check className="w-3 h-3 text-white" />}
           </button>
           
-          {isEditing ? (
-            <Input
-              type="text"
-              value={editedText}
-              onChange={(e) => setEditedText(e.target.value)}
-              onKeyDown={handleTextEdit}
-              onBlur={handleTextSave}
-              className="flex-1"
-              autoFocus
-            />
-          ) : (
-            <span 
-              className={cn(
-                "flex-1 text-gray-900 cursor-pointer hover:text-[#7A65FF]",
-                todo.completed && "line-through text-gray-500"
-              )}
-              onClick={() => !todo.completed && setIsEditing(true)}
-            >
-              {todo.text}
-            </span>
-          )}
+          <TodoText
+            text={todo.text}
+            isEditing={isEditing}
+            isCompleted={todo.completed}
+            editedText={editedText}
+            onEditedTextChange={(e) => setEditedText(e.target.value)}
+            onTextEdit={handleTextEdit}
+            onTextClick={() => !todo.completed && setIsEditing(true)}
+            onTextSave={handleTextSave}
+          />
 
-          <div className="flex items-center gap-2">
-            <Input
-              type="text"
-              placeholder="Assign to..."
-              value={assignee}
-              onChange={handleAssignChange}
-              onBlur={handleAssignBlur}
-              className="w-32 h-8 text-sm"
-            />
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setIsModalOpen(true)}
-              className="h-8"
-            >
-              <Plus className="w-4 h-4" />
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setIsNotesOpen(!isNotesOpen)}
-              className="h-8"
-            >
-              <MessageSquare className="w-4 h-4" />
-            </Button>
-            <Button
-              variant="destructive"
-              size="sm"
-              onClick={() => onDelete(todo.id)}
-              className="h-8"
-            >
-              <Trash2 className="w-4 h-4" />
-            </Button>
-          </div>
+          <TodoControls
+            assignee={assignee}
+            onAssignChange={handleAssignChange}
+            onAssignBlur={handleAssignBlur}
+            onAddSubTodo={() => setIsModalOpen(true)}
+            onToggleNotes={() => setIsNotesOpen(!isNotesOpen)}
+            onDelete={() => onDelete(todo.id)}
+            hasNotes={Boolean(todo.notes?.trim())}
+          />
         </div>
 
-        <Collapsible open={isNotesOpen} onOpenChange={setIsNotesOpen}>
-          <CollapsibleContent className="mt-4">
-            <Textarea
-              placeholder="Add notes..."
-              value={notes}
-              onChange={handleNotesChange}
-              onBlur={handleNotesBlur}
-              className="w-full min-h-[100px] text-sm"
-            />
-          </CollapsibleContent>
-        </Collapsible>
+        <TodoNotes
+          isOpen={isNotesOpen}
+          notes={notes}
+          onChange={handleNotesChange}
+          onBlur={handleNotesBlur}
+        />
 
         {todo.completed && todo.signature && (
           <div className="mt-2 text-sm text-gray-500">
