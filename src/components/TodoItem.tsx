@@ -16,6 +16,7 @@ interface TodoItemProps {
   onAddSubTodo: (parentId: string, text: string) => void;
   onDelete: (todoId: string, isSubTodo?: boolean) => void;
   onUpdateNotes: (todoId: string, notes: string) => void;
+  onUpdateText: (todoId: string, text: string) => void;
 }
 
 const TodoItem = ({ 
@@ -25,17 +26,21 @@ const TodoItem = ({
   onAssign, 
   onAddSubTodo, 
   onDelete,
-  onUpdateNotes 
+  onUpdateNotes,
+  onUpdateText
 }: TodoItemProps) => {
   const [assignee, setAssignee] = useState(todo.assigned_to || '');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [notes, setNotes] = useState(todo.notes || '');
   const [isNotesOpen, setIsNotesOpen] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedText, setEditedText] = useState(todo.text);
 
   useEffect(() => {
     setAssignee(todo.assigned_to || '');
     setNotes(todo.notes || '');
-  }, [todo.assigned_to, todo.notes]);
+    setEditedText(todo.text);
+  }, [todo.assigned_to, todo.notes, todo.text]);
 
   const handleAssignChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;
@@ -66,6 +71,22 @@ const TodoItem = ({
     }
   };
 
+  const handleTextEdit = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      handleTextSave();
+    } else if (e.key === 'Escape') {
+      setIsEditing(false);
+      setEditedText(todo.text);
+    }
+  };
+
+  const handleTextSave = () => {
+    if (editedText.trim() && editedText !== todo.text) {
+      onUpdateText(todo.id, editedText);
+    }
+    setIsEditing(false);
+  };
+
   return (
     <div className="space-y-2">
       <div className={cn(
@@ -85,12 +106,27 @@ const TodoItem = ({
             {todo.completed && <Check className="w-3 h-3 text-white" />}
           </button>
           
-          <span className={cn(
-            "flex-1 text-gray-900",
-            todo.completed && "line-through text-gray-500"
-          )}>
-            {todo.text}
-          </span>
+          {isEditing ? (
+            <Input
+              type="text"
+              value={editedText}
+              onChange={(e) => setEditedText(e.target.value)}
+              onKeyDown={handleTextEdit}
+              onBlur={handleTextSave}
+              className="flex-1"
+              autoFocus
+            />
+          ) : (
+            <span 
+              className={cn(
+                "flex-1 text-gray-900 cursor-pointer hover:text-[#7A65FF]",
+                todo.completed && "line-through text-gray-500"
+              )}
+              onClick={() => !todo.completed && setIsEditing(true)}
+            >
+              {todo.text}
+            </span>
+          )}
 
           <div className="flex items-center gap-2">
             <Input
@@ -168,6 +204,7 @@ const TodoItem = ({
               onAddSubTodo={onAddSubTodo}
               onDelete={(todoId) => onDelete(todoId, true)}
               onUpdateNotes={onUpdateNotes}
+              onUpdateText={onUpdateText}
             />
           ))}
         </div>
