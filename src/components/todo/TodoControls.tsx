@@ -56,7 +56,7 @@ const TodoControls = ({
           <SelectValue placeholder="Assign to..." />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="_unassigned">Unassigned</SelectItem>
+          <SelectItem value="_unassigned">{''}</SelectItem>
           {users.map((user) => (
             <SelectItem key={user.id} value={user.name}>
               {user.name}
