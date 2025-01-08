@@ -1,12 +1,19 @@
 import React from 'react';
 import { Plus, MessageSquare, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 
 interface TodoControlsProps {
   assignee: string;
-  onAssignChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  onAssignBlur: () => void;
+  onAssignChange: (value: string) => void;
   onAddSubTodo: () => void;
   onToggleNotes: () => void;
   onDelete: () => void;
@@ -16,22 +23,39 @@ interface TodoControlsProps {
 const TodoControls = ({
   assignee,
   onAssignChange,
-  onAssignBlur,
   onAddSubTodo,
   onToggleNotes,
   onDelete,
   hasNotes
 }: TodoControlsProps) => {
+  const { data: users = [] } = useQuery({
+    queryKey: ['assignableUsers'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('assignable_users')
+        .select('*')
+        .order('name');
+      
+      if (error) throw error;
+      return data;
+    },
+  });
+
   return (
     <div className="flex items-center gap-2">
-      <Input
-        type="text"
-        placeholder="Assign to..."
-        value={assignee}
-        onChange={onAssignChange}
-        onBlur={onAssignBlur}
-        className="w-32 h-8 text-sm"
-      />
+      <Select value={assignee} onValueChange={onAssignChange}>
+        <SelectTrigger className="w-32 h-8">
+          <SelectValue placeholder="Assign to..." />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="">Unassigned</SelectItem>
+          {users.map((user) => (
+            <SelectItem key={user.id} value={user.name}>
+              {user.name}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
       <Button
         variant="outline"
         size="sm"
