@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import * as React from 'react';
 import { Plus, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,10 +13,10 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
 const TodoList = () => {
-  const [newTodo, setNewTodo] = useState('');
-  const [selectedTodo, setSelectedTodo] = useState<Todo | null>(null);
-  const [isSignatureModalOpen, setIsSignatureModalOpen] = useState(false);
-  const [assigneeFilter, setAssigneeFilter] = useState('');
+  const [newTodo, setNewTodo] = React.useState('');
+  const [selectedTodo, setSelectedTodo] = React.useState<Todo | null>(null);
+  const [isSignatureModalOpen, setIsSignatureModalOpen] = React.useState(false);
+  const [assigneeFilter, setAssigneeFilter] = React.useState('');
   
   const { 
     todos, 
