@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useState, useCallback } from 'react';
 import { Textarea } from '@/components/ui/textarea';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
 import { useToast } from '@/components/ui/use-toast';
+import debounce from 'lodash/debounce';
 
 interface UserStatus {
   id: string;
@@ -14,6 +15,7 @@ interface UserStatus {
 
 const UserStatusList = ({ users }: { users: { name: string }[] }) => {
   const { toast } = useToast();
+  const [localStatuses, setLocalStatuses] = useState<Record<string, string>>({});
 
   const { data: statuses, refetch } = useQuery({
     queryKey: ['user-statuses'],
@@ -28,30 +30,39 @@ const UserStatusList = ({ users }: { users: { name: string }[] }) => {
     }
   });
 
-  const updateStatus = async (userName: string, newStatus: string) => {
-    const { error } = await supabase
-      .from('user_status')
-      .upsert({ 
-        user_name: userName, 
-        status_text: newStatus,
-        updated_at: new Date().toISOString()
-      }, {
-        onConflict: 'user_name'
-      });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const debouncedUpdateStatus = useCallback(
+    debounce(async (userName: string, newStatus: string) => {
+      const { error } = await supabase
+        .from('user_status')
+        .upsert({ 
+          user_name: userName, 
+          status_text: newStatus,
+          updated_at: new Date().toISOString()
+        }, {
+          onConflict: 'user_name'
+        });
 
-    if (error) {
-      toast({
-        title: "Error updating status",
-        description: error.message,
-        variant: "destructive"
-      });
-    } else {
-      toast({
-        title: "Status updated",
-        description: "Your status has been saved"
-      });
-      refetch();
-    }
+      if (error) {
+        toast({
+          title: "Error updating status",
+          description: error.message,
+          variant: "destructive"
+        });
+      } else {
+        toast({
+          title: "Status updated",
+          description: "Your status has been saved"
+        });
+        refetch();
+      }
+    }, 5000),
+    [toast, refetch]
+  );
+
+  const handleStatusChange = (userName: string, newStatus: string) => {
+    setLocalStatuses(prev => ({ ...prev, [userName]: newStatus }));
+    debouncedUpdateStatus(userName, newStatus);
   };
 
   const getStatusForUser = (userName: string) => {
@@ -64,6 +75,7 @@ const UserStatusList = ({ users }: { users: { name: string }[] }) => {
       <div className="space-y-8">
         {users.map((user) => {
           const status = getStatusForUser(user.name);
+          const localStatus = localStatuses[user.name];
           return (
             <div key={user.name} className="space-y-2">
               <div className="flex justify-between items-center">
@@ -76,8 +88,8 @@ const UserStatusList = ({ users }: { users: { name: string }[] }) => {
               </div>
               <Textarea
                 placeholder="What did you work on last?"
-                value={status?.status_text || ''}
-                onChange={(e) => updateStatus(user.name, e.target.value)}
+                value={localStatus !== undefined ? localStatus : status?.status_text || ''}
+                onChange={(e) => handleStatusChange(user.name, e.target.value)}
                 className="min-h-[100px]"
               />
             </div>
