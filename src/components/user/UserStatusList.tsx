@@ -5,6 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
 import { useToast } from '@/components/ui/use-toast';
 import debounce from 'lodash/debounce';
+import ReactMarkdown from 'react-markdown';
 
 interface UserStatus {
   id: string;
@@ -16,6 +17,7 @@ interface UserStatus {
 const UserStatusList = ({ users }: { users: { name: string }[] }) => {
   const { toast } = useToast();
   const [localStatuses, setLocalStatuses] = useState<Record<string, string>>({});
+  const [isEditing, setIsEditing] = useState<Record<string, boolean>>({});
 
   const { data: statuses, refetch } = useQuery({
     queryKey: ['user-statuses'],
@@ -76,6 +78,9 @@ const UserStatusList = ({ users }: { users: { name: string }[] }) => {
         {users.map((user) => {
           const status = getStatusForUser(user.name);
           const localStatus = localStatuses[user.name];
+          const isUserEditing = isEditing[user.name];
+          const displayText = localStatus !== undefined ? localStatus : status?.status_text || '';
+
           return (
             <div key={user.name} className="space-y-2">
               <div className="flex justify-between items-center">
@@ -86,12 +91,26 @@ const UserStatusList = ({ users }: { users: { name: string }[] }) => {
                   </span>
                 )}
               </div>
-              <Textarea
-                placeholder="What did you work on last?"
-                value={localStatus !== undefined ? localStatus : status?.status_text || ''}
-                onChange={(e) => handleStatusChange(user.name, e.target.value)}
-                className="min-h-[100px]"
-              />
+              {isUserEditing ? (
+                <Textarea
+                  placeholder="What did you work on last? (Supports Markdown)"
+                  value={displayText}
+                  onChange={(e) => handleStatusChange(user.name, e.target.value)}
+                  className="min-h-[100px] font-mono"
+                  onBlur={() => setIsEditing(prev => ({ ...prev, [user.name]: false }))}
+                />
+              ) : (
+                <div 
+                  className="prose prose-sm max-w-none p-3 border rounded-md min-h-[100px] cursor-pointer hover:bg-gray-50"
+                  onClick={() => setIsEditing(prev => ({ ...prev, [user.name]: true }))}
+                >
+                  {displayText ? (
+                    <ReactMarkdown>{displayText}</ReactMarkdown>
+                  ) : (
+                    <span className="text-gray-400">Click to add your status (Supports Markdown)</span>
+                  )}
+                </div>
+              )}
             </div>
           );
         })}
