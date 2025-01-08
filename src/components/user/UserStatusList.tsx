@@ -71,6 +71,10 @@ const UserStatusList = ({ users }: { users: { name: string }[] }) => {
     return statuses?.find(status => status.user_name === userName);
   };
 
+  const handleEditClick = useCallback((userName: string) => {
+    setIsEditing(prev => ({ ...prev, [userName]: true }));
+  }, []);
+
   return (
     <div className="space-y-6">
       <h2 className="text-2xl font-bold text-gray-900">Where I Left Off</h2>
@@ -98,18 +102,20 @@ const UserStatusList = ({ users }: { users: { name: string }[] }) => {
                   onChange={(e) => handleStatusChange(user.name, e.target.value)}
                   className="min-h-[100px] font-mono"
                   onBlur={() => setIsEditing(prev => ({ ...prev, [user.name]: false }))}
+                  autoFocus
                 />
               ) : (
-                <div 
-                  className="prose prose-sm max-w-none p-3 border rounded-md min-h-[100px] cursor-pointer hover:bg-gray-50"
-                  onClick={() => setIsEditing(prev => ({ ...prev, [user.name]: true }))}
+                <button
+                  type="button"
+                  onClick={() => handleEditClick(user.name)}
+                  className="w-full text-left prose prose-sm max-w-none p-3 border rounded-md min-h-[100px] hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                 >
                   {displayText ? (
                     <ReactMarkdown>{displayText}</ReactMarkdown>
                   ) : (
                     <span className="text-gray-400">Click to add your status (Supports Markdown)</span>
                   )}
-                </div>
+                </button>
               )}
             </div>
           );
