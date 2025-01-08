@@ -41,14 +41,22 @@ const TodoControls = ({
     },
   });
 
+  // Convert empty assignee to _unassigned for the Select component
+  const selectValue = assignee || '_unassigned';
+
+  const handleAssignChange = (value: string) => {
+    // Convert _unassigned back to empty string for the parent component
+    onAssignChange(value === '_unassigned' ? '' : value);
+  };
+
   return (
     <div className="flex items-center gap-2">
-      <Select value={assignee} onValueChange={onAssignChange}>
+      <Select value={selectValue} onValueChange={handleAssignChange}>
         <SelectTrigger className="w-32 h-8">
           <SelectValue placeholder="Assign to..." />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="">Unassigned</SelectItem>
+          <SelectItem value="_unassigned">Unassigned</SelectItem>
           {users.map((user) => (
             <SelectItem key={user.id} value={user.name}>
               {user.name}
