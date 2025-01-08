@@ -68,6 +68,27 @@ export type Database = {
           },
         ]
       }
+      user_status: {
+        Row: {
+          id: string
+          status_text: string | null
+          updated_at: string | null
+          user_name: string
+        }
+        Insert: {
+          id?: string
+          status_text?: string | null
+          updated_at?: string | null
+          user_name: string
+        }
+        Update: {
+          id?: string
+          status_text?: string | null
+          updated_at?: string | null
+          user_name?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

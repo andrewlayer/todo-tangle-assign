@@ -8,8 +8,8 @@ import { useToast } from '@/components/ui/use-toast';
 interface UserStatus {
   id: string;
   user_name: string;
-  status_text: string;
-  updated_at: string;
+  status_text: string | null;
+  updated_at: string | null;
 }
 
 const UserStatusList = ({ users }: { users: { name: string }[] }) => {
@@ -70,7 +70,7 @@ const UserStatusList = ({ users }: { users: { name: string }[] }) => {
                 <h3 className="text-lg font-semibold text-gray-700">{user.name}</h3>
                 {status && (
                   <span className="text-sm text-gray-500">
-                    Last updated: {format(new Date(status.updated_at), 'MMM d, yyyy h:mm a')}
+                    Last updated: {format(new Date(status.updated_at || ''), 'MMM d, yyyy h:mm a')}
                   </span>
                 )}
               </div>
