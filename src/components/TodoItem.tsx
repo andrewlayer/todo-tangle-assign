@@ -41,14 +41,9 @@ const TodoItem = ({
     setEditedText(todo.text);
   }, [todo.assigned_to, todo.notes, todo.text]);
 
-  const handleAssignChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setAssignee(e.target.value);
-  };
-
-  const handleAssignBlur = () => {
-    if (assignee !== todo.assigned_to) {
-      onAssign(todo.id, assignee);
-    }
+  const handleAssignChange = (value: string) => {
+    setAssignee(value);
+    onAssign(todo.id, value);
   };
 
   const handleNotesChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -163,7 +158,6 @@ const TodoItem = ({
           <TodoControls
             assignee={assignee}
             onAssignChange={handleAssignChange}
-            onAssignBlur={handleAssignBlur}
             onAddSubTodo={() => setIsModalOpen(true)}
             onToggleNotes={() => setIsNotesOpen(!isNotesOpen)}
             onDelete={() => onDelete(todo.id)}
