@@ -144,7 +144,7 @@ const TodoList = () => {
           />
         </div>
 
-        <div className="bg-white p-6 rounded-lg shadow-sm border">
+        <div className="bg-white p-6 rounded-lg shadow-sm border h-fit">
           <UserStatusList users={users} />
         </div>
       </div>
