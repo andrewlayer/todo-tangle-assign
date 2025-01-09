@@ -83,18 +83,18 @@ const TodoItem = ({
   };
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-2 min-w-0">
       <div 
         className={cn(
           "p-3 sm:p-4 rounded-lg border border-gray-200 shadow-sm transition-all",
-          "hover:shadow-md bg-white",
+          "hover:shadow-md bg-white min-w-0",
           todo.completed && "bg-gray-50 border-gray-100"
         )}
       >
-        <div className="flex flex-col gap-3">
-          <div className="flex items-center gap-2 sm:gap-3">
+        <div className="flex flex-col gap-3 min-w-0">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
             {!isMobile && (
-              <div className="cursor-grab">
+              <div className="cursor-grab flex-shrink-0">
                 <GripVertical className="w-4 h-4 text-gray-400" />
               </div>
             )}
@@ -141,7 +141,7 @@ const TodoItem = ({
         />
 
         {todo.completed && todo.signature && (
-          <div className="mt-2 text-sm text-gray-500">
+          <div className="mt-2 text-sm text-gray-500 truncate">
             Completed by: {todo.signature}
           </div>
         )}
@@ -157,7 +157,7 @@ const TodoItem = ({
       />
 
       {todo.subTodos.length > 0 && (
-        <div className="pl-4 sm:pl-8 space-y-2">
+        <div className="pl-4 sm:pl-8 space-y-2 min-w-0">
           {todo.subTodos.map((subTodo) => (
             <TodoItem
               key={subTodo.id}

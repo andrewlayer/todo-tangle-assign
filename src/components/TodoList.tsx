@@ -1,4 +1,4 @@
-import * as React from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Plus, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -82,20 +82,20 @@ const TodoList = () => {
   const filteredTodos = filterTodosByAssignees(todos, assigneeFilters);
 
   return (
-    <div className="w-full px-2 sm:px-6 py-4 sm:py-6">
+    <div className="w-full min-w-0 px-1 sm:px-6 py-4 sm:py-6">
       <div className="max-w-7xl mx-auto">
-        <div className="grid gap-4 sm:gap-8 lg:grid-cols-2">
-          <div className="space-y-4 sm:space-y-6">
+        <div className="grid gap-4 sm:gap-8 lg:grid-cols-2 min-w-0">
+          <div className="space-y-4 sm:space-y-6 min-w-0">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4 sm:mb-8">
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 overflow-hidden">
                 <img 
                   src="/lovable-uploads/fc710911-f339-469a-b007-e2b31d58d6a9.png" 
                   alt="Layer's Logo" 
-                  className="w-8 h-8"
+                  className="w-8 h-8 flex-shrink-0"
                 />
-                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Layer's Todos</h1>
+                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 truncate">Layer's Todos</h1>
               </div>
-              <Link to="/settings" className="w-full sm:w-auto">
+              <Link to="/settings" className="w-full sm:w-auto flex-shrink-0">
                 <Button variant="outline" size="sm" className="w-full sm:w-auto">
                   <Settings className="w-4 h-4 mr-2" />
                   Settings
@@ -109,25 +109,25 @@ const TodoList = () => {
               placeholder="Filter by assignee..."
             />
             
-            <div className="flex flex-col sm:flex-row gap-2">
+            <div className="flex flex-col sm:flex-row gap-2 min-w-0">
               <Input
                 type="text"
                 value={newTodo}
                 onChange={(e) => setNewTodo(e.target.value)}
                 placeholder="Add a new todo..."
-                className="flex-1"
+                className="flex-1 min-w-0"
                 onKeyPress={(e) => e.key === 'Enter' && handleAddTodo(newTodo)}
               />
               <Button 
                 onClick={() => handleAddTodo(newTodo)} 
-                className="bg-[#7A65FF] hover:bg-[#6952FF] text-white w-full sm:w-auto whitespace-nowrap"
+                className="bg-[#7A65FF] hover:bg-[#6952FF] text-white w-full sm:w-auto whitespace-nowrap flex-shrink-0"
               >
                 <Plus className="w-4 h-4 mr-2" />
                 Add Todo
               </Button>
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-4 min-w-0">
               {filteredTodos.map((todo) => (
                 <TodoItem
                   key={todo.id}
@@ -150,7 +150,7 @@ const TodoList = () => {
             />
           </div>
 
-          <div className="bg-white p-4 sm:p-6 rounded-lg shadow-sm border lg:sticky lg:top-6 h-fit">
+          <div className="bg-white p-4 sm:p-6 rounded-lg shadow-sm border lg:sticky lg:top-6 h-fit min-w-0">
             <UserStatusList users={users} />
           </div>
         </div>
