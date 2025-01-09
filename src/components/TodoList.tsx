@@ -1,3 +1,4 @@
+import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Plus, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
