@@ -31,7 +31,7 @@ const TodoText = ({
         onChange={onEditedTextChange}
         onKeyDown={onTextEdit}
         onBlur={onTextSave}
-        className="flex-1"
+        className="flex-1 h-8"
         autoFocus
       />
     );
@@ -40,7 +40,7 @@ const TodoText = ({
   return (
     <span 
       className={cn(
-        "flex-1 text-gray-900 cursor-pointer hover:text-[#7A65FF]",
+        "flex-1 text-gray-900 cursor-pointer hover:text-[#7A65FF] break-words",
         isCompleted && "line-through text-gray-500"
       )}
       onClick={onTextClick}

@@ -11,12 +11,14 @@ import { Link } from 'react-router-dom';
 import UserStatusList from './user/UserStatusList';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const TodoList = () => {
   const [newTodo, setNewTodo] = React.useState('');
   const [selectedTodo, setSelectedTodo] = React.useState<Todo | null>(null);
   const [isSignatureModalOpen, setIsSignatureModalOpen] = React.useState(false);
   const [assigneeFilters, setAssigneeFilters] = React.useState<string[]>([]);
+  const isMobile = useIsMobile();
   
   const { 
     todos, 
@@ -80,72 +82,85 @@ const TodoList = () => {
   const filteredTodos = filterTodosByAssignees(todos, assigneeFilters);
 
   return (
-    <div className="max-w-[90rem] mx-auto p-6">
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-        <div className="space-y-6">
-          <div className="flex items-center justify-between mb-8">
-            <div className="flex items-center gap-3">
-              <img 
-                src="/lovable-uploads/fc710911-f339-469a-b007-e2b31d58d6a9.png" 
-                alt="Layer's Logo" 
-                className="w-8 h-8"
-              />
-              <h1 className="text-3xl font-bold text-gray-900">Layer's Todos</h1>
+    <div className="w-full px-4 sm:px-6 py-6">
+      <div className="max-w-7xl mx-auto">
+        <div className={`grid gap-8 ${isMobile ? '' : 'lg:grid-cols-2'}`}>
+          <div className="space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+              <div className="flex items-center gap-3">
+                <img 
+                  src="/lovable-uploads/fc710911-f339-469a-b007-e2b31d58d6a9.png" 
+                  alt="Layer's Logo" 
+                  className="w-8 h-8"
+                />
+                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Layer's Todos</h1>
+              </div>
+              <Link to="/settings">
+                <Button variant="outline" size="sm" className="w-full sm:w-auto">
+                  <Settings className="w-4 h-4 mr-2" />
+                  Settings
+                </Button>
+              </Link>
             </div>
-            <Link to="/settings">
-              <Button variant="outline" size="sm">
-                <Settings className="w-4 h-4 mr-2" />
-                Settings
-              </Button>
-            </Link>
-          </div>
 
-          <FilterBar
-            value={assigneeFilters}
-            onChange={setAssigneeFilters}
-            placeholder="Filter by assignee..."
-          />
-          
-          <div className="flex gap-2">
-            <Input
-              type="text"
-              value={newTodo}
-              onChange={(e) => setNewTodo(e.target.value)}
-              placeholder="Add a new todo..."
-              className="flex-1"
-              onKeyPress={(e) => e.key === 'Enter' && handleAddTodo(newTodo)}
+            <FilterBar
+              value={assigneeFilters}
+              onChange={setAssigneeFilters}
+              placeholder="Filter by assignee..."
             />
-            <Button onClick={() => handleAddTodo(newTodo)} className="bg-[#7A65FF] hover:bg-[#6952FF] text-white">
-              <Plus className="w-4 h-4 mr-2" />
-              Add Todo
-            </Button>
-          </div>
-
-          <div className="space-y-4">
-            {filteredTodos.map((todo) => (
-              <TodoItem
-                key={todo.id}
-                todo={todo}
-                onComplete={handleTodoCompletion}
-                onUncomplete={uncompleteTodo}
-                onAssign={assignTodo}
-                onAddSubTodo={(parentId, text) => handleAddTodo(text, parentId)}
-                onDelete={deleteTodo}
-                onUpdateNotes={updateNotes}
-                onUpdateText={updateTodoText}
+            
+            <div className="flex flex-col sm:flex-row gap-2">
+              <Input
+                type="text"
+                value={newTodo}
+                onChange={(e) => setNewTodo(e.target.value)}
+                placeholder="Add a new todo..."
+                className="flex-1"
+                onKeyPress={(e) => e.key === 'Enter' && handleAddTodo(newTodo)}
               />
-            ))}
+              <Button 
+                onClick={() => handleAddTodo(newTodo)} 
+                className="bg-[#7A65FF] hover:bg-[#6952FF] text-white w-full sm:w-auto"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Add Todo
+              </Button>
+            </div>
+
+            <div className="space-y-4">
+              {filteredTodos.map((todo) => (
+                <TodoItem
+                  key={todo.id}
+                  todo={todo}
+                  onComplete={handleTodoCompletion}
+                  onUncomplete={uncompleteTodo}
+                  onAssign={assignTodo}
+                  onAddSubTodo={(parentId, text) => handleAddTodo(text, parentId)}
+                  onDelete={deleteTodo}
+                  onUpdateNotes={updateNotes}
+                  onUpdateText={updateTodoText}
+                />
+              ))}
+            </div>
+
+            <SignatureModal
+              isOpen={isSignatureModalOpen}
+              onClose={() => setIsSignatureModalOpen(false)}
+              onSubmit={handleSignatureSubmit}
+            />
           </div>
 
-          <SignatureModal
-            isOpen={isSignatureModalOpen}
-            onClose={() => setIsSignatureModalOpen(false)}
-            onSubmit={handleSignatureSubmit}
-          />
-        </div>
+          {!isMobile && (
+            <div className="bg-white p-6 rounded-lg shadow-sm border lg:sticky lg:top-6 h-fit">
+              <UserStatusList users={users} />
+            </div>
+          )}
 
-        <div className="bg-white p-6 rounded-lg shadow-sm border lg:sticky lg:top-6 h-fit">
-          <UserStatusList users={users} />
+          {isMobile && (
+            <div className="bg-white p-4 rounded-lg shadow-sm border">
+              <UserStatusList users={users} />
+            </div>
+          )}
         </div>
       </div>
     </div>

@@ -18,6 +18,7 @@ interface TodoControlsProps {
   onToggleNotes: () => void;
   onDelete: () => void;
   hasNotes: boolean;
+  isMobile?: boolean;
 }
 
 const TodoControls = ({
@@ -26,7 +27,8 @@ const TodoControls = ({
   onAddSubTodo,
   onToggleNotes,
   onDelete,
-  hasNotes
+  hasNotes,
+  isMobile
 }: TodoControlsProps) => {
   const { data: users = [] } = useQuery({
     queryKey: ['assignableUsers'],
@@ -41,18 +43,16 @@ const TodoControls = ({
     },
   });
 
-  // Convert empty assignee to _unassigned for the Select component
   const selectValue = assignee || '_unassigned';
 
   const handleAssignChange = (value: string) => {
-    // Convert _unassigned back to empty string for the parent component
     onAssignChange(value === '_unassigned' ? '' : value);
   };
 
   return (
-    <div className="flex items-center gap-2">
+    <div className={`flex items-center gap-2 ${isMobile ? 'flex-wrap' : ''}`}>
       <Select value={selectValue} onValueChange={handleAssignChange}>
-        <SelectTrigger className="w-32 h-8">
+        <SelectTrigger className={`h-8 ${isMobile ? 'flex-1 min-w-[150px]' : 'w-32'}`}>
           <SelectValue placeholder="Assign to..." />
         </SelectTrigger>
         <SelectContent>
@@ -64,35 +64,37 @@ const TodoControls = ({
           ))}
         </SelectContent>
       </Select>
-      <Button
-        variant="outline"
-        size="sm"
-        onClick={onAddSubTodo}
-        className="h-8"
-      >
-        <Plus className="w-4 h-4" />
-      </Button>
-      <div className="relative">
+      <div className={`flex gap-2 ${isMobile ? 'flex-1 justify-end' : ''}`}>
         <Button
           variant="outline"
           size="sm"
-          onClick={onToggleNotes}
+          onClick={onAddSubTodo}
           className="h-8"
         >
-          <MessageSquare className="w-4 h-4" />
+          <Plus className="w-4 h-4" />
         </Button>
-        {hasNotes && (
-          <div className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full" />
-        )}
+        <div className="relative">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={onToggleNotes}
+            className="h-8"
+          >
+            <MessageSquare className="w-4 h-4" />
+          </Button>
+          {hasNotes && (
+            <div className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full" />
+          )}
+        </div>
+        <Button
+          variant="destructive"
+          size="sm"
+          onClick={onDelete}
+          className="h-8"
+        >
+          <Trash2 className="w-4 h-4" />
+        </Button>
       </div>
-      <Button
-        variant="destructive"
-        size="sm"
-        onClick={onDelete}
-        className="h-8"
-      >
-        <Trash2 className="w-4 h-4" />
-      </Button>
     </div>
   );
 };

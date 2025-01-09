@@ -6,6 +6,7 @@ import AddSubTodoModal from './AddSubTodoModal';
 import TodoControls from './todo/TodoControls';
 import TodoText from './todo/TodoText';
 import TodoNotes from './todo/TodoNotes';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface TodoItemProps {
   todo: Todo;
@@ -34,6 +35,7 @@ const TodoItem = ({
   const [isNotesOpen, setIsNotesOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editedText, setEditedText] = useState(todo.text);
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     setAssignee(todo.assigned_to || '');
@@ -80,80 +82,45 @@ const TodoItem = ({
     setIsEditing(false);
   };
 
-  const handleDragStart = (e: React.DragEvent<HTMLDivElement>) => {
-    e.dataTransfer.setData('text/plain', todo.id);
-    e.currentTarget.classList.add('opacity-50');
-  };
-
-  const handleDragEnd = (e: React.DragEvent<HTMLDivElement>) => {
-    e.currentTarget.classList.remove('opacity-50');
-  };
-
-  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    e.currentTarget.classList.add('border-[#7A65FF]');
-  };
-
-  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
-    e.currentTarget.classList.remove('border-[#7A65FF]');
-  };
-
-  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    e.currentTarget.classList.remove('border-[#7A65FF]');
-    const draggedTodoId = e.dataTransfer.getData('text/plain');
-    if (draggedTodoId !== todo.id) {
-      const draggedTodo = document.querySelector(`[data-todo-id="${draggedTodoId}"]`);
-      if (draggedTodo) {
-        onAddSubTodo(todo.id, draggedTodo.getAttribute('data-todo-text') || '');
-        onDelete(draggedTodoId);
-      }
-    }
-  };
-
   return (
     <div className="space-y-2">
       <div 
         className={cn(
-          "p-4 rounded-lg border border-gray-200 shadow-sm transition-all",
-          "hover:shadow-md bg-white group",
+          "p-3 sm:p-4 rounded-lg border border-gray-200 shadow-sm transition-all",
+          "hover:shadow-md bg-white",
           todo.completed && "bg-gray-50 border-gray-100"
         )}
-        draggable
-        onDragStart={handleDragStart}
-        onDragEnd={handleDragEnd}
-        onDragOver={handleDragOver}
-        onDragLeave={handleDragLeave}
-        onDrop={handleDrop}
-        data-todo-id={todo.id}
-        data-todo-text={todo.text}
       >
-        <div className="flex items-center gap-3">
-          <div className="cursor-grab">
-            <GripVertical className="w-4 h-4 text-gray-400" />
-          </div>
-          
-          <button
-            onClick={handleToggleComplete}
-            className={cn(
-              "w-5 h-5 rounded-full border-2 flex items-center justify-center",
-              "transition-colors hover:border-[#7A65FF]",
-              todo.completed ? "bg-[#7A65FF] border-[#7A65FF]" : "border-gray-300"
+        <div className="flex flex-col gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
+            {!isMobile && (
+              <div className="cursor-grab">
+                <GripVertical className="w-4 h-4 text-gray-400" />
+              </div>
             )}
-          >
-            {todo.completed && <Check className="w-3 h-3 text-white" />}
-          </button>
+            
+            <button
+              onClick={handleToggleComplete}
+              className={cn(
+                "min-w-[20px] h-5 rounded-full border-2 flex items-center justify-center",
+                "transition-colors hover:border-[#7A65FF]",
+                todo.completed ? "bg-[#7A65FF] border-[#7A65FF]" : "border-gray-300"
+              )}
+            >
+              {todo.completed && <Check className="w-3 h-3 text-white" />}
+            </button>
 
-          <TodoText
-            text={todo.text}
-            isEditing={isEditing}
-            isCompleted={todo.completed}
-            editedText={editedText}
-            onEditedTextChange={(e) => setEditedText(e.target.value)}
-            onTextEdit={handleTextEdit}
-            onTextClick={() => !todo.completed && setIsEditing(true)}
-            onTextSave={handleTextSave}
-          />
+            <TodoText
+              text={todo.text}
+              isEditing={isEditing}
+              isCompleted={todo.completed}
+              editedText={editedText}
+              onEditedTextChange={(e) => setEditedText(e.target.value)}
+              onTextEdit={handleTextEdit}
+              onTextClick={() => !todo.completed && setIsEditing(true)}
+              onTextSave={handleTextSave}
+            />
+          </div>
 
           <TodoControls
             assignee={assignee}
@@ -162,6 +129,7 @@ const TodoItem = ({
             onToggleNotes={() => setIsNotesOpen(!isNotesOpen)}
             onDelete={() => onDelete(todo.id)}
             hasNotes={Boolean(todo.notes?.trim())}
+            isMobile={isMobile}
           />
         </div>
 
@@ -189,7 +157,7 @@ const TodoItem = ({
       />
 
       {todo.subTodos.length > 0 && (
-        <div className="pl-8 space-y-2">
+        <div className="pl-4 sm:pl-8 space-y-2">
           {todo.subTodos.map((subTodo) => (
             <TodoItem
               key={subTodo.id}
