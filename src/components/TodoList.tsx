@@ -16,7 +16,7 @@ const TodoList = () => {
   const [newTodo, setNewTodo] = React.useState('');
   const [selectedTodo, setSelectedTodo] = React.useState<Todo | null>(null);
   const [isSignatureModalOpen, setIsSignatureModalOpen] = React.useState(false);
-  const [assigneeFilter, setAssigneeFilter] = React.useState('');
+  const [assigneeFilters, setAssigneeFilters] = React.useState<string[]>([]);
   
   const { 
     todos, 
@@ -60,10 +60,12 @@ const TodoList = () => {
     setSelectedTodo(null);
   };
 
-  const filterTodosByAssignee = (todos: Todo[], filter: string): Todo[] => {
+  const filterTodosByAssignees = (todos: Todo[], filters: string[]): Todo[] => {
+    if (filters.length === 0) return todos;
+    
     return todos.map(todo => {
-      const matchesFilter = todo.assigned_to?.toLowerCase().includes(filter.toLowerCase());
-      const filteredSubTodos = filterTodosByAssignee(todo.subTodos, filter);
+      const matchesFilter = todo.assigned_to && filters.includes(todo.assigned_to);
+      const filteredSubTodos = filterTodosByAssignees(todo.subTodos, filters);
       
       if (matchesFilter || filteredSubTodos.length > 0) {
         return {
@@ -75,9 +77,7 @@ const TodoList = () => {
     }).filter((todo): todo is Todo => todo !== null);
   };
 
-  const filteredTodos = assigneeFilter
-    ? filterTodosByAssignee(todos, assigneeFilter)
-    : todos;
+  const filteredTodos = filterTodosByAssignees(todos, assigneeFilters);
 
   return (
     <div className="max-w-[90rem] mx-auto p-6">
@@ -101,8 +101,8 @@ const TodoList = () => {
           </div>
 
           <FilterBar
-            value={assigneeFilter}
-            onChange={setAssigneeFilter}
+            value={assigneeFilters}
+            onChange={setAssigneeFilters}
             placeholder="Filter by assignee..."
           />
           
