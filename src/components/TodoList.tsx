@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { Plus, Settings } from 'lucide-react';
+import { Plus, Settings, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import TodoItem from './TodoItem';
@@ -13,12 +13,19 @@ import UserStatusList from './user/UserStatusList';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { Badge } from '@/components/ui/badge';
+import { 
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 
 const TodoList = () => {
   const [newTodo, setNewTodo] = React.useState('');
   const [selectedTodo, setSelectedTodo] = React.useState<Todo | null>(null);
   const [isSignatureModalOpen, setIsSignatureModalOpen] = React.useState(false);
   const [assigneeFilters, setAssigneeFilters] = React.useState<string[]>([]);
+  const [isOpen, setIsOpen] = React.useState(true);
   const isMobile = useIsMobile();
   
   const { 
@@ -128,21 +135,30 @@ const TodoList = () => {
               </Button>
             </div>
 
-            <div className="space-y-4 min-w-0">
-              {filteredTodos.map((todo) => (
-                <TodoItem
-                  key={todo.id}
-                  todo={todo}
-                  onComplete={handleTodoCompletion}
-                  onUncomplete={uncompleteTodo}
-                  onAssign={assignTodo}
-                  onAddSubTodo={(parentId, text) => handleAddTodo(text, parentId)}
-                  onDelete={deleteTodo}
-                  onUpdateNotes={updateNotes}
-                  onUpdateText={updateTodoText}
-                />
-              ))}
-            </div>
+            <Collapsible open={isOpen} onOpenChange={setIsOpen} className="space-y-2">
+              <CollapsibleTrigger className="flex items-center justify-between w-full p-4 bg-white rounded-lg shadow-sm border">
+                <div className="flex items-center gap-2">
+                  <h2 className="text-lg font-semibold">Tasks</h2>
+                  <Badge variant="secondary">{filteredTodos.length}</Badge>
+                </div>
+                <ChevronDown className={`h-4 w-4 transition-transform ${isOpen ? 'transform rotate-180' : ''}`} />
+              </CollapsibleTrigger>
+              <CollapsibleContent className="space-y-4">
+                {filteredTodos.map((todo) => (
+                  <TodoItem
+                    key={todo.id}
+                    todo={todo}
+                    onComplete={handleTodoCompletion}
+                    onUncomplete={uncompleteTodo}
+                    onAssign={assignTodo}
+                    onAddSubTodo={(parentId, text) => handleAddTodo(text, parentId)}
+                    onDelete={deleteTodo}
+                    onUpdateNotes={updateNotes}
+                    onUpdateText={updateTodoText}
+                  />
+                ))}
+              </CollapsibleContent>
+            </Collapsible>
 
             <SignatureModal
               isOpen={isSignatureModalOpen}
