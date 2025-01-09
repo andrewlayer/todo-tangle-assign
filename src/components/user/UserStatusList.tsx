@@ -111,7 +111,9 @@ const UserStatusList = ({ users }: { users: { name: string }[] }) => {
                   className="w-full text-left prose prose-sm max-w-none p-3 border rounded-md min-h-[100px] hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                 >
                   {displayText ? (
-                    <ReactMarkdown>{displayText}</ReactMarkdown>
+                    <div className="[&>*:first-child]:mt-0 [&>*:last-child]:mb-0">
+                      <ReactMarkdown>{displayText}</ReactMarkdown>
+                    </div>
                   ) : (
                     <span className="text-gray-400">Click to add your status (Supports Markdown)</span>
                   )}
