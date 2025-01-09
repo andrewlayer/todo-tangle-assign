@@ -27,7 +27,7 @@ interface FilterBarProps {
 const FilterBar = ({ value = [], onChange, placeholder }: FilterBarProps) => {
   const [open, setOpen] = React.useState(false);
 
-  const { data: users = [] } = useQuery({
+  const { data: users = [], isLoading } = useQuery({
     queryKey: ['assignable-users'],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -36,14 +36,14 @@ const FilterBar = ({ value = [], onChange, placeholder }: FilterBarProps) => {
         .order('name');
       
       if (error) throw error;
-      return data;
+      return data || [];
     }
   });
 
   const toggleUser = (userName: string) => {
-    const newValue = value.includes(userName)
+    const newValue = Array.isArray(value) && value.includes(userName)
       ? value.filter(v => v !== userName)
-      : [...value, userName];
+      : [...(Array.isArray(value) ? value : []), userName];
     onChange(newValue);
   };
 
@@ -56,8 +56,9 @@ const FilterBar = ({ value = [], onChange, placeholder }: FilterBarProps) => {
             role="combobox"
             aria-expanded={open}
             className="w-full justify-between"
+            disabled={isLoading}
           >
-            {value.length === 0 ? (
+            {!value?.length ? (
               <span className="text-muted-foreground">{placeholder}</span>
             ) : (
               <div className="flex flex-wrap gap-1">
@@ -89,7 +90,7 @@ const FilterBar = ({ value = [], onChange, placeholder }: FilterBarProps) => {
                   <Check
                     className={cn(
                       "mr-2 h-4 w-4",
-                      value.includes(user.name) ? "opacity-100" : "opacity-0"
+                      Array.isArray(value) && value.includes(user.name) ? "opacity-100" : "opacity-0"
                     )}
                   />
                   {user.name}
