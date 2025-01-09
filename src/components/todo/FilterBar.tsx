@@ -8,6 +8,7 @@ import {
   CommandGroup,
   CommandInput,
   CommandItem,
+  CommandList,
 } from "@/components/ui/command";
 import {
   Popover,
@@ -79,24 +80,26 @@ const FilterBar = ({ value = [], onChange, placeholder }: FilterBarProps) => {
         <PopoverContent className="w-full p-0">
           <Command>
             <CommandInput placeholder="Search users..." />
-            <CommandEmpty>No user found.</CommandEmpty>
-            <CommandGroup>
-              {users.map((user) => (
-                <CommandItem
-                  key={user.id}
-                  value={user.name}
-                  onSelect={() => toggleUser(user.name)}
-                >
-                  <Check
-                    className={cn(
-                      "mr-2 h-4 w-4",
-                      Array.isArray(value) && value.includes(user.name) ? "opacity-100" : "opacity-0"
-                    )}
-                  />
-                  {user.name}
-                </CommandItem>
-              ))}
-            </CommandGroup>
+            <CommandList>
+              <CommandEmpty>No user found.</CommandEmpty>
+              <CommandGroup>
+                {users.map((user) => (
+                  <CommandItem
+                    key={user.id}
+                    value={user.name}
+                    onSelect={() => toggleUser(user.name)}
+                  >
+                    <Check
+                      className={cn(
+                        "mr-2 h-4 w-4",
+                        Array.isArray(value) && value.includes(user.name) ? "opacity-100" : "opacity-0"
+                      )}
+                    />
+                    {user.name}
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            </CommandList>
           </Command>
         </PopoverContent>
       </Popover>
