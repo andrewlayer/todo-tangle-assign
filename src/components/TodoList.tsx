@@ -87,10 +87,17 @@ const TodoList = () => {
     }).filter((todo): todo is Todo => todo !== null);
   };
 
+  const countAllTodos = (todos: Todo[]): number => {
+    return todos.reduce((count, todo) => {
+      return count + 1 + countAllTodos(todo.subTodos);
+    }, 0);
+  };
+
   const filteredTodos = filterTodosByAssignees(todos, assigneeFilters);
+  const totalTodoCount = countAllTodos(filteredTodos);
 
   return (
-    <div className="w-full min-w-0 px-1 sm:px-6 py-4 sm:py-6">
+    <div className="w-full min-w-0 px-4 sm:px-6 py-4 sm:py-6">
       <div className="max-w-7xl mx-auto">
         <div className="grid gap-4 sm:gap-8 lg:grid-cols-2 min-w-0">
           <div className="space-y-4 sm:space-y-6 min-w-0">
@@ -139,7 +146,7 @@ const TodoList = () => {
               <CollapsibleTrigger className="flex items-center justify-between w-full p-4 bg-white rounded-lg shadow-sm border">
                 <div className="flex items-center gap-2">
                   <h2 className="text-lg font-semibold">Tasks</h2>
-                  <Badge variant="secondary">{filteredTodos.length}</Badge>
+                  <Badge variant="secondary">{totalTodoCount}</Badge>
                 </div>
                 <ChevronDown className={`h-4 w-4 transition-transform ${isOpen ? 'transform rotate-180' : ''}`} />
               </CollapsibleTrigger>
