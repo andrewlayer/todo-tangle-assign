@@ -3,7 +3,9 @@ import { Check, GripVertical } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Todo } from '@/types/todo';
 import AddSubTodoModal from './AddSubTodoModal';
-import TodoLayout from './todo/TodoLayout';
+import TodoControls from './todo/TodoControls';
+import TodoText from './todo/TodoText';
+import TodoNotes from './todo/TodoNotes';
 
 interface TodoItemProps {
   todo: Todo;
@@ -126,7 +128,7 @@ const TodoItem = ({
         data-todo-id={todo.id}
         data-todo-text={todo.text}
       >
-        <div className="flex items-start gap-3">
+        <div className="flex items-center gap-3">
           <div className="cursor-grab">
             <GripVertical className="w-4 h-4 text-gray-400" />
           </div>
@@ -142,29 +144,39 @@ const TodoItem = ({
             {todo.completed && <Check className="w-3 h-3 text-white" />}
           </button>
 
-          <div className="flex-1">
-            <TodoLayout
-              text={todo.text}
-              isEditing={isEditing}
-              isCompleted={todo.completed}
-              editedText={editedText}
-              assignee={assignee}
-              notes={notes}
-              isNotesOpen={isNotesOpen}
-              signature={todo.signature}
-              onEditedTextChange={(e) => setEditedText(e.target.value)}
-              onTextEdit={handleTextEdit}
-              onTextClick={() => !todo.completed && setIsEditing(true)}
-              onTextSave={handleTextSave}
-              onAssignChange={handleAssignChange}
-              onAddSubTodo={() => setIsModalOpen(true)}
-              onToggleNotes={() => setIsNotesOpen(!isNotesOpen)}
-              onDelete={() => onDelete(todo.id)}
-              onNotesChange={handleNotesChange}
-              onNotesBlur={handleNotesBlur}
-            />
-          </div>
+          <TodoText
+            text={todo.text}
+            isEditing={isEditing}
+            isCompleted={todo.completed}
+            editedText={editedText}
+            onEditedTextChange={(e) => setEditedText(e.target.value)}
+            onTextEdit={handleTextEdit}
+            onTextClick={() => !todo.completed && setIsEditing(true)}
+            onTextSave={handleTextSave}
+          />
+
+          <TodoControls
+            assignee={assignee}
+            onAssignChange={handleAssignChange}
+            onAddSubTodo={() => setIsModalOpen(true)}
+            onToggleNotes={() => setIsNotesOpen(!isNotesOpen)}
+            onDelete={() => onDelete(todo.id)}
+            hasNotes={Boolean(todo.notes?.trim())}
+          />
         </div>
+
+        <TodoNotes
+          isOpen={isNotesOpen}
+          notes={notes}
+          onChange={handleNotesChange}
+          onBlur={handleNotesBlur}
+        />
+
+        {todo.completed && todo.signature && (
+          <div className="mt-2 text-sm text-gray-500">
+            Completed by: {todo.signature}
+          </div>
+        )}
       </div>
 
       <AddSubTodoModal
