@@ -1,5 +1,4 @@
 import React from 'react';
-import { cn } from '@/lib/utils';
 import TodoText from './TodoText';
 import TodoControls from './TodoControls';
 import TodoNotes from './TodoNotes';
@@ -46,7 +45,7 @@ const TodoLayout = ({
   onNotesBlur
 }: TodoLayoutProps) => {
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-4">
       <div className="w-full">
         <TodoText
           text={text}
@@ -61,14 +60,16 @@ const TodoLayout = ({
       </div>
 
       <div className="flex items-center gap-2">
-        <TodoControls
-          assignee={assignee}
-          onAssignChange={onAssignChange}
-          onAddSubTodo={onAddSubTodo}
-          onToggleNotes={onToggleNotes}
-          onDelete={onDelete}
-          hasNotes={Boolean(notes?.trim())}
-        />
+        <div className="flex-1">
+          <TodoControls
+            assignee={assignee}
+            onAssignChange={onAssignChange}
+            onAddSubTodo={onAddSubTodo}
+            onToggleNotes={onToggleNotes}
+            onDelete={onDelete}
+            hasNotes={Boolean(notes?.trim())}
+          />
+        </div>
       </div>
 
       <TodoNotes

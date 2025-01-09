@@ -41,29 +41,29 @@ const TodoControls = ({
     },
   });
 
-  // Convert empty assignee to _unassigned for the Select component
   const selectValue = assignee || '_unassigned';
 
   const handleAssignChange = (value: string) => {
-    // Convert _unassigned back to empty string for the parent component
     onAssignChange(value === '_unassigned' ? '' : value);
   };
 
   return (
-    <div className="flex items-center gap-2">
-      <Select value={selectValue} onValueChange={handleAssignChange}>
-        <SelectTrigger className="w-32 h-8">
-          <SelectValue placeholder="Assign to..." />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="_unassigned">{''}</SelectItem>
-          {users.map((user) => (
-            <SelectItem key={user.id} value={user.name}>
-              {user.name}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+    <div className="flex items-center gap-2 w-full">
+      <div className="flex-1">
+        <Select value={selectValue} onValueChange={handleAssignChange}>
+          <SelectTrigger className="w-full h-8">
+            <SelectValue placeholder="Assign to..." />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="_unassigned">{''}</SelectItem>
+            {users.map((user) => (
+              <SelectItem key={user.id} value={user.name}>
+                {user.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
       <Button
         variant="outline"
         size="sm"
