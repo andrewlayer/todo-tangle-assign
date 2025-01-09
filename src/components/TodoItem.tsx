@@ -102,7 +102,7 @@ const TodoItem = ({
             <button
               onClick={handleToggleComplete}
               className={cn(
-                "min-w-[20px] h-5 rounded-full border-2 flex items-center justify-center",
+                "min-w-[20px] h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0",
                 "transition-colors hover:border-[#7A65FF]",
                 todo.completed ? "bg-[#7A65FF] border-[#7A65FF]" : "border-gray-300"
               )}

@@ -82,11 +82,11 @@ const TodoList = () => {
   const filteredTodos = filterTodosByAssignees(todos, assigneeFilters);
 
   return (
-    <div className="w-full px-4 sm:px-6 py-6">
+    <div className="w-full px-2 sm:px-6 py-4 sm:py-6">
       <div className="max-w-7xl mx-auto">
-        <div className={`grid gap-8 ${isMobile ? '' : 'lg:grid-cols-2'}`}>
-          <div className="space-y-6">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+        <div className="grid gap-4 sm:gap-8 lg:grid-cols-2">
+          <div className="space-y-4 sm:space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4 sm:mb-8">
               <div className="flex items-center gap-3">
                 <img 
                   src="/lovable-uploads/fc710911-f339-469a-b007-e2b31d58d6a9.png" 
@@ -95,7 +95,7 @@ const TodoList = () => {
                 />
                 <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Layer's Todos</h1>
               </div>
-              <Link to="/settings">
+              <Link to="/settings" className="w-full sm:w-auto">
                 <Button variant="outline" size="sm" className="w-full sm:w-auto">
                   <Settings className="w-4 h-4 mr-2" />
                   Settings
@@ -120,7 +120,7 @@ const TodoList = () => {
               />
               <Button 
                 onClick={() => handleAddTodo(newTodo)} 
-                className="bg-[#7A65FF] hover:bg-[#6952FF] text-white w-full sm:w-auto"
+                className="bg-[#7A65FF] hover:bg-[#6952FF] text-white w-full sm:w-auto whitespace-nowrap"
               >
                 <Plus className="w-4 h-4 mr-2" />
                 Add Todo
@@ -150,17 +150,9 @@ const TodoList = () => {
             />
           </div>
 
-          {!isMobile && (
-            <div className="bg-white p-6 rounded-lg shadow-sm border lg:sticky lg:top-6 h-fit">
-              <UserStatusList users={users} />
-            </div>
-          )}
-
-          {isMobile && (
-            <div className="bg-white p-4 rounded-lg shadow-sm border">
-              <UserStatusList users={users} />
-            </div>
-          )}
+          <div className="bg-white p-4 sm:p-6 rounded-lg shadow-sm border lg:sticky lg:top-6 h-fit">
+            <UserStatusList users={users} />
+          </div>
         </div>
       </div>
     </div>

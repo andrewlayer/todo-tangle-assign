@@ -50,9 +50,9 @@ const TodoControls = ({
   };
 
   return (
-    <div className={`flex items-center gap-2 ${isMobile ? 'flex-wrap' : ''}`}>
+    <div className="flex flex-col sm:flex-row gap-2 sm:items-center">
       <Select value={selectValue} onValueChange={handleAssignChange}>
-        <SelectTrigger className={`h-8 ${isMobile ? 'flex-1 min-w-[150px]' : 'w-32'}`}>
+        <SelectTrigger className="h-8 flex-1">
           <SelectValue placeholder="Assign to..." />
         </SelectTrigger>
         <SelectContent>
@@ -64,7 +64,7 @@ const TodoControls = ({
           ))}
         </SelectContent>
       </Select>
-      <div className={`flex gap-2 ${isMobile ? 'flex-1 justify-end' : ''}`}>
+      <div className="flex gap-2 justify-end sm:justify-start">
         <Button
           variant="outline"
           size="sm"
