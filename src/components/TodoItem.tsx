@@ -14,7 +14,7 @@ interface TodoItemProps {
   onComplete: (todo: Todo) => void;
   onUncomplete: (todoId: string) => void;
   onAssign: (todoId: string, assignee: string, isSubTodo?: boolean) => void;
-  onAddSubTodo: (parentId: string, text: string) => void;
+  onAddSubTodo: (parentId: string, text: string) => Promise<void>;
   onDelete: (todoId: string, isSubTodo?: boolean) => void;
   onUpdateNotes: (todoId: string, notes: string) => void;
   onUpdateText: (todoId: string, text: string) => void;
@@ -159,9 +159,8 @@ const TodoItem = ({
       <AddSubTodoModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        onAdd={(text) => {
-          onAddSubTodo(todo.id, text);
-          setIsModalOpen(false);
+        onAdd={async (text) => {
+          await onAddSubTodo(todo.id, text);
         }}
       />
 
