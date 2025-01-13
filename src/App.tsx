@@ -4,6 +4,8 @@ import { Toaster } from '@/components/ui/toaster';
 import Todos from '@/pages/Todos';
 import Status from '@/pages/Status';
 import Settings from '@/pages/Settings';
+import Backlogs from '@/pages/Backlogs';
+import UserBacklog from '@/pages/UserBacklog';
 import TopNav from '@/components/TopNav';
 
 const queryClient = new QueryClient();
@@ -20,6 +22,8 @@ function App() {
               <Route path="/todos" element={<Todos />} />
               <Route path="/status" element={<Status />} />
               <Route path="/settings" element={<Settings />} />
+              <Route path="/backlogs" element={<Backlogs />} />
+              <Route path="/backlogs/:username" element={<UserBacklog />} />
             </Routes>
           </main>
         </div>

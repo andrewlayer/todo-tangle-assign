@@ -1,5 +1,5 @@
 import { useNavigate, useLocation } from 'react-router-dom';
-import { ClipboardList, Settings, Timer } from 'lucide-react';
+import { ClipboardList, Settings, Timer, Archive } from 'lucide-react';
 import {
   Menubar,
   MenubarContent,
@@ -40,6 +40,15 @@ const TopNav = () => {
           </MenubarMenu>
           <MenubarMenu>
             <MenubarTrigger 
+              className={isActive('/backlogs')} 
+              onClick={() => navigate('/backlogs')}
+            >
+              <Archive className="w-4 h-4 mr-2" />
+              Backlogs
+            </MenubarTrigger>
+          </MenubarMenu>
+          <MenubarMenu>
+            <MenubarTrigger 
               className={isActive('/settings')} 
               onClick={() => navigate('/settings')}
             >
@@ -51,6 +60,6 @@ const TopNav = () => {
       </div>
     </div>
   );
-}
+};
 
 export default TopNav;

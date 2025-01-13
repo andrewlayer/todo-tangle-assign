@@ -18,11 +18,17 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 
-const TodoList = () => {
+interface TodoListProps {
+  assignedUser?: string;
+}
+
+const TodoList = ({ assignedUser }: TodoListProps) => {
   const [newTodo, setNewTodo] = React.useState('');
   const [selectedTodo, setSelectedTodo] = React.useState<Todo | null>(null);
   const [isSignatureModalOpen, setIsSignatureModalOpen] = React.useState(false);
-  const [assigneeFilters, setAssigneeFilters] = React.useState<string[]>([]);
+  const [assigneeFilters, setAssigneeFilters] = React.useState<string[]>(
+    assignedUser ? [assignedUser] : []
+  );
   const [isOpen, setIsOpen] = React.useState(true);
   const isMobile = useIsMobile();
   
@@ -52,7 +58,10 @@ const TodoList = () => {
 
   const handleAddTodo = async (text: string, parentId: string | null = null) => {
     if (!text.trim()) return;
-    await addTodo(text, parentId);
+    const newTodoData = await addTodo(text, parentId);
+    if (newTodoData && assignedUser) {
+      await assignTodo(newTodoData.id, assignedUser);
+    }
     setNewTodo('');
   };
 
@@ -98,35 +107,39 @@ const TodoList = () => {
     <div className="w-full min-w-0 px-4 sm:px-6 py-4 sm:py-6">
       <div className="max-w-7xl mx-auto">
         <div className="space-y-4 sm:space-y-6 min-w-0">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4 sm:mb-8">
-            <div className="flex items-center gap-3 overflow-hidden">
-              <img 
-                src="/lovable-uploads/fc710911-f339-469a-b007-e2b31d58d6a9.png" 
-                alt="Layer's Logo" 
-                className="w-8 h-8 flex-shrink-0"
-              />
-              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 truncate">Layer's Todos</h1>
+          {!assignedUser && (
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4 sm:mb-8">
+              <div className="flex items-center gap-3 overflow-hidden">
+                <img 
+                  src="/lovable-uploads/fc710911-f339-469a-b007-e2b31d58d6a9.png" 
+                  alt="Layer's Logo" 
+                  className="w-8 h-8 flex-shrink-0"
+                />
+                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 truncate">Layer's Todos</h1>
+              </div>
+              <div className="flex gap-2 w-full sm:w-auto">
+                <Link to="/status" className="flex-1 sm:flex-none">
+                  <Button variant="outline" size="sm" className="w-full">
+                    Where I Left Off
+                  </Button>
+                </Link>
+                <Link to="/settings" className="flex-1 sm:flex-none">
+                  <Button variant="outline" size="sm" className="w-full">
+                    <Settings className="w-4 h-4 mr-2" />
+                    Settings
+                  </Button>
+                </Link>
+              </div>
             </div>
-            <div className="flex gap-2 w-full sm:w-auto">
-              <Link to="/status" className="flex-1 sm:flex-none">
-                <Button variant="outline" size="sm" className="w-full">
-                  Where I Left Off
-                </Button>
-              </Link>
-              <Link to="/settings" className="flex-1 sm:flex-none">
-                <Button variant="outline" size="sm" className="w-full">
-                  <Settings className="w-4 h-4 mr-2" />
-                  Settings
-                </Button>
-              </Link>
-            </div>
-          </div>
+          )}
 
-          <FilterBar
-            value={assigneeFilters}
-            onChange={setAssigneeFilters}
-            placeholder="Filter by assignee..."
-          />
+          {!assignedUser && (
+            <FilterBar
+              value={assigneeFilters}
+              onChange={setAssigneeFilters}
+              placeholder="Filter by assignee..."
+            />
+          )}
           
           <div className="flex flex-col sm:flex-row gap-2 min-w-0">
             <Input
