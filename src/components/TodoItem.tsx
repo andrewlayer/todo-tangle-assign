@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Check, GripVertical } from 'lucide-react';
+import { Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Todo } from '@/types/todo';
 import AddSubTodoModal from './AddSubTodoModal';
@@ -107,12 +107,6 @@ const TodoItem = ({
       >
         <div className="flex flex-col gap-3 min-w-0">
           <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-            {!isMobile && (
-              <div className="cursor-grab flex-shrink-0">
-                <GripVertical className="w-4 h-4 text-gray-400" />
-              </div>
-            )}
-            
             <button
               onClick={handleToggleComplete}
               className={cn(

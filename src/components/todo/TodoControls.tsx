@@ -1,5 +1,5 @@
 import React from 'react';
-import { Plus, MessageSquare, Trash2, MoveRight } from 'lucide-react';
+import { Plus, MessageSquare, Trash2, MoveRight, MoreVertical } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Select,
@@ -8,6 +8,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useLocation } from 'react-router-dom';
@@ -70,14 +76,6 @@ const TodoControls = ({
         </SelectContent>
       </Select>
       <div className="flex gap-2 justify-end sm:justify-start">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={onAddSubTodo}
-          className="h-8"
-        >
-          <Plus className="w-4 h-4" />
-        </Button>
         <div className="relative">
           <Button
             variant="outline"
@@ -91,24 +89,32 @@ const TodoControls = ({
             <div className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full" />
           )}
         </div>
-        {isInBacklog && onMoveToMainList && (
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={onMoveToMainList}
-            className="h-8"
-          >
-            <MoveRight className="w-4 h-4" />
-          </Button>
-        )}
-        <Button
-          variant="destructive"
-          size="sm"
-          onClick={onDelete}
-          className="h-8"
-        >
-          <Trash2 className="w-4 h-4" />
-        </Button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" size="sm" className="h-8">
+              <MoreVertical className="w-4 h-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={onAddSubTodo}>
+              <Plus className="w-4 h-4 mr-2" />
+              Add Subtask
+            </DropdownMenuItem>
+            {isInBacklog && onMoveToMainList && (
+              <DropdownMenuItem onClick={onMoveToMainList}>
+                <MoveRight className="w-4 h-4 mr-2" />
+                Move to Todos
+              </DropdownMenuItem>
+            )}
+            <DropdownMenuItem 
+              onClick={onDelete}
+              className="text-red-600 focus:text-red-600"
+            >
+              <Trash2 className="w-4 h-4 mr-2" />
+              Delete
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </div>
   );
