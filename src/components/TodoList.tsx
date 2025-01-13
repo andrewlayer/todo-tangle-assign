@@ -20,9 +20,10 @@ import {
 
 interface TodoListProps {
   assignedUser?: string;
+  onMoveToMainList?: (todo: Todo) => void;
 }
 
-const TodoList = ({ assignedUser }: TodoListProps) => {
+const TodoList = ({ assignedUser, onMoveToMainList }: TodoListProps) => {
   const [newTodo, setNewTodo] = React.useState('');
   const [selectedTodo, setSelectedTodo] = React.useState<Todo | null>(null);
   const [isSignatureModalOpen, setIsSignatureModalOpen] = React.useState(false);
@@ -179,6 +180,7 @@ const TodoList = ({ assignedUser }: TodoListProps) => {
                   onDelete={deleteTodo}
                   onUpdateNotes={updateNotes}
                   onUpdateText={updateTodoText}
+                  onMoveToMainList={onMoveToMainList}
                 />
               ))}
             </CollapsibleContent>

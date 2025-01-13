@@ -1,5 +1,5 @@
 import React from 'react';
-import { Plus, MessageSquare, Trash2 } from 'lucide-react';
+import { Plus, MessageSquare, Trash2, MoveRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Select,
@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/select";
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { useLocation } from 'react-router-dom';
 
 interface TodoControlsProps {
   assignee: string;
@@ -17,6 +18,7 @@ interface TodoControlsProps {
   onAddSubTodo: () => void;
   onToggleNotes: () => void;
   onDelete: () => void;
+  onMoveToMainList?: () => void;
   hasNotes: boolean;
   isMobile?: boolean;
 }
@@ -27,6 +29,7 @@ const TodoControls = ({
   onAddSubTodo,
   onToggleNotes,
   onDelete,
+  onMoveToMainList,
   hasNotes,
   isMobile
 }: TodoControlsProps) => {
@@ -43,6 +46,8 @@ const TodoControls = ({
     },
   });
 
+  const location = useLocation();
+  const isInBacklog = location.pathname.includes('/backlogs/');
   const selectValue = assignee || '_unassigned';
 
   const handleAssignChange = (value: string) => {
@@ -86,6 +91,16 @@ const TodoControls = ({
             <div className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full" />
           )}
         </div>
+        {isInBacklog && onMoveToMainList && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={onMoveToMainList}
+            className="h-8"
+          >
+            <MoveRight className="w-4 h-4" />
+          </Button>
+        )}
         <Button
           variant="destructive"
           size="sm"

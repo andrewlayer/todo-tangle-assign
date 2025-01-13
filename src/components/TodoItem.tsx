@@ -7,6 +7,7 @@ import TodoControls from './todo/TodoControls';
 import TodoText from './todo/TodoText';
 import TodoNotes from './todo/TodoNotes';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useToast } from './ui/use-toast';
 
 interface TodoItemProps {
   todo: Todo;
@@ -17,6 +18,7 @@ interface TodoItemProps {
   onDelete: (todoId: string, isSubTodo?: boolean) => void;
   onUpdateNotes: (todoId: string, notes: string) => void;
   onUpdateText: (todoId: string, text: string) => void;
+  onMoveToMainList?: (todo: Todo) => void;
 }
 
 const TodoItem = ({ 
@@ -27,7 +29,8 @@ const TodoItem = ({
   onAddSubTodo, 
   onDelete,
   onUpdateNotes,
-  onUpdateText
+  onUpdateText,
+  onMoveToMainList
 }: TodoItemProps) => {
   const [assignee, setAssignee] = useState(todo.assigned_to || '');
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -36,6 +39,7 @@ const TodoItem = ({
   const [isEditing, setIsEditing] = useState(false);
   const [editedText, setEditedText] = useState(todo.text);
   const isMobile = useIsMobile();
+  const { toast } = useToast();
 
   useEffect(() => {
     setAssignee(todo.assigned_to || '');
@@ -80,6 +84,16 @@ const TodoItem = ({
       onUpdateText(todo.id, editedText);
     }
     setIsEditing(false);
+  };
+
+  const handleMoveToMainList = () => {
+    if (onMoveToMainList) {
+      onMoveToMainList(todo);
+      toast({
+        title: "Task moved",
+        description: "Task has been moved to the main todo list",
+      });
+    }
   };
 
   return (
@@ -128,6 +142,7 @@ const TodoItem = ({
             onAddSubTodo={() => setIsModalOpen(true)}
             onToggleNotes={() => setIsNotesOpen(!isNotesOpen)}
             onDelete={() => onDelete(todo.id)}
+            onMoveToMainList={onMoveToMainList ? handleMoveToMainList : undefined}
             hasNotes={Boolean(todo.notes?.trim())}
             isMobile={isMobile}
           />
@@ -169,6 +184,7 @@ const TodoItem = ({
               onDelete={(todoId) => onDelete(todoId, true)}
               onUpdateNotes={onUpdateNotes}
               onUpdateText={onUpdateText}
+              onMoveToMainList={onMoveToMainList}
             />
           ))}
         </div>

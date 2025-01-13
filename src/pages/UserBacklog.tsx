@@ -2,11 +2,20 @@ import { useParams, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft } from 'lucide-react';
 import TodoList from '@/components/TodoList';
+import { supabase } from '@/integrations/supabase/client';
+import { Todo } from '@/types/todo';
 
 const UserBacklog = () => {
   const { username } = useParams();
 
   if (!username) return null;
+
+  const handleMoveToMainList = async (todo: Todo) => {
+    await supabase
+      .from('todos')
+      .update({ assigned_to: '' })
+      .eq('id', todo.id);
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -20,7 +29,10 @@ const UserBacklog = () => {
           </Link>
         </div>
         <h1 className="text-2xl font-bold mb-6">{decodeURIComponent(username)}'s Backlog</h1>
-        <TodoList assignedUser={decodeURIComponent(username)} />
+        <TodoList 
+          assignedUser={decodeURIComponent(username)} 
+          onMoveToMainList={handleMoveToMainList}
+        />
       </div>
     </div>
   );
