@@ -2,12 +2,19 @@ import { supabase } from '@/integrations/supabase/client';
 import { Todo } from '@/types/todo';
 import { toast } from '@/components/ui/use-toast';
 
-export const fetchTodosFromSupabase = async () => {
+export const fetchTodosFromSupabase = async (inBacklog: boolean = false, assignedUser?: string) => {
   try {
-    const { data, error } = await supabase
+    let query = supabase
       .from('todos')
       .select('*')
+      .eq('in_backlog', inBacklog)
       .order('created_at', { ascending: true });
+
+    if (assignedUser) {
+      query = query.eq('assigned_to', assignedUser);
+    }
+
+    const { data, error } = await query;
 
     if (error) throw error;
     return data;
@@ -22,13 +29,20 @@ export const fetchTodosFromSupabase = async () => {
   }
 };
 
-export const addTodoToSupabase = async (text: string, parentId: string | null = null) => {
+export const addTodoToSupabase = async (
+  text: string, 
+  parentId: string | null = null,
+  inBacklog: boolean = false,
+  assignedUser?: string
+) => {
   try {
     const { data, error } = await supabase
       .from('todos')
       .insert([{
         text,
         parent_id: parentId,
+        in_backlog: inBacklog,
+        assigned_to: assignedUser || ''
       }])
       .select()
       .single();

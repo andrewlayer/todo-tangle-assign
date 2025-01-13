@@ -33,6 +33,7 @@ export type Database = {
           completed: boolean | null
           created_at: string
           id: string
+          in_backlog: boolean | null
           notes: string | null
           parent_id: string | null
           signature: string | null
@@ -43,6 +44,7 @@ export type Database = {
           completed?: boolean | null
           created_at?: string
           id?: string
+          in_backlog?: boolean | null
           notes?: string | null
           parent_id?: string | null
           signature?: string | null
@@ -53,6 +55,7 @@ export type Database = {
           completed?: boolean | null
           created_at?: string
           id?: string
+          in_backlog?: boolean | null
           notes?: string | null
           parent_id?: string | null
           signature?: string | null

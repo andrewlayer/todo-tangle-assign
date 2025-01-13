@@ -10,16 +10,16 @@ import {
 } from './useSupabaseTodos';
 import { transformTodosToTree, getAllChildIds } from '@/utils/todoUtils';
 
-export const useTodos = () => {
+export const useTodos = (inBacklog: boolean = false, assignedUser?: string) => {
   const [todos, setTodos] = useState<Todo[]>([]);
 
   const fetchTodos = async () => {
-    const data = await fetchTodosFromSupabase();
+    const data = await fetchTodosFromSupabase(inBacklog, assignedUser);
     setTodos(transformTodosToTree(data));
   };
 
   const addTodo = async (text: string, parentId: string | null = null) => {
-    const data = await addTodoToSupabase(text, parentId);
+    const data = await addTodoToSupabase(text, parentId, inBacklog, assignedUser);
     if (data) {
       await fetchTodos();
       toast({
@@ -102,9 +102,26 @@ export const useTodos = () => {
   };
 
   const assignTodo = async (todoId: string, assignee: string) => {
-    const success = await updateTodoInSupabase(todoId, { assigned_to: assignee });
+    const success = await updateTodoInSupabase(todoId, { 
+      assigned_to: assignee,
+      in_backlog: Boolean(assignee)
+    });
     if (success) {
       await fetchTodos();
+    }
+  };
+
+  const moveToMainList = async (todoId: string) => {
+    const success = await updateTodoInSupabase(todoId, { 
+      in_backlog: false,
+      assigned_to: ''
+    });
+    if (success) {
+      await fetchTodos();
+      toast({
+        title: "Task moved",
+        description: "Task has been moved to the main todo list",
+      });
     }
   };
 
@@ -136,7 +153,7 @@ export const useTodos = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, []);
+  }, [inBacklog, assignedUser]);
 
   return {
     todos,
@@ -146,6 +163,7 @@ export const useTodos = () => {
     completeTodo,
     uncompleteTodo,
     assignTodo,
-    updateNotes
+    updateNotes,
+    moveToMainList
   };
 };
