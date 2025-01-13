@@ -36,18 +36,23 @@ export const addTodoToSupabase = async (
   assignedUser?: string
 ) => {
   try {
+    const newTodo = {
+      text,
+      parent_id: parentId || null,
+      in_backlog: inBacklog,
+      assigned_to: assignedUser || ''
+    };
+
     const { data, error } = await supabase
       .from('todos')
-      .insert([{
-        text,
-        parent_id: parentId,
-        in_backlog: inBacklog,
-        assigned_to: assignedUser || ''
-      }])
+      .insert([newTodo])
       .select()
       .single();
 
-    if (error) throw error;
+    if (error) {
+      console.error('Supabase error:', error);
+      throw error;
+    }
     return data;
   } catch (error) {
     console.error('Error adding todo:', error);
