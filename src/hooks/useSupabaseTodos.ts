@@ -36,9 +36,16 @@ export const addTodoToSupabase = async (
   assignedUser?: string
 ) => {
   try {
+    // Validate UUID format if parentId is provided
+    const isValidUUID = parentId ? /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(parentId) : true;
+    
+    if (parentId && !isValidUUID) {
+      throw new Error('Invalid parent ID format');
+    }
+
     const newTodo = {
       text,
-      parent_id: parentId || null,
+      parent_id: parentId,
       in_backlog: inBacklog,
       assigned_to: assignedUser || ''
     };
@@ -47,7 +54,7 @@ export const addTodoToSupabase = async (
       .from('todos')
       .insert([newTodo])
       .select()
-      .single();
+      .maybeSingle();
 
     if (error) {
       console.error('Supabase error:', error);
