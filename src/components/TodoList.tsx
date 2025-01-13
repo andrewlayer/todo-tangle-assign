@@ -15,6 +15,8 @@ const TodoList = ({ assignedUser, onMoveToMainList }: TodoListProps) => {
   const [showCompleted, setShowCompleted] = useState(false);
   const [isSignatureModalOpen, setIsSignatureModalOpen] = useState(false);
   const [selectedTodo, setSelectedTodo] = useState<Todo | null>(null);
+  const [isAddingTodo, setIsAddingTodo] = useState(false);
+  
   const { 
     todos, 
     addTodo, 
@@ -49,7 +51,32 @@ const TodoList = ({ assignedUser, onMoveToMainList }: TodoListProps) => {
     }
   };
 
+  const handleAddTodo = async (text: string) => {
+    if (isAddingTodo) return; // Prevent multiple submissions
+    
+    setIsAddingTodo(true);
+    try {
+      await addTodo(text);
+      toast({
+        title: "Success",
+        description: "Todo added successfully",
+      });
+    } catch (error) {
+      console.error('Error adding todo:', error);
+      toast({
+        title: "Error",
+        description: "Failed to add todo. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsAddingTodo(false);
+    }
+  };
+
   const handleAddSubTodo = async (parentId: string, text: string): Promise<void> => {
+    if (isAddingTodo) return;
+    
+    setIsAddingTodo(true);
     try {
       const result = await addTodo(text, parentId);
       if (!result) {
@@ -67,6 +94,8 @@ const TodoList = ({ assignedUser, onMoveToMainList }: TodoListProps) => {
         variant: "destructive"
       });
       throw error;
+    } finally {
+      setIsAddingTodo(false);
     }
   };
 
@@ -103,7 +132,8 @@ const TodoList = ({ assignedUser, onMoveToMainList }: TodoListProps) => {
       <FilterBar 
         showCompleted={showCompleted} 
         onShowCompletedChange={setShowCompleted} 
-        onAddTodo={addTodo}
+        onAddTodo={handleAddTodo}
+        isAddingTodo={isAddingTodo}
       />
       <div className="space-y-4">
         {filteredTodos.map((todo) => (

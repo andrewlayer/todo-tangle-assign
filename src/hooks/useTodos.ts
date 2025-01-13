@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Todo } from '@/types/todo';
 import { toast } from '@/components/ui/use-toast';
@@ -12,11 +12,12 @@ import { transformTodosToTree, getAllChildIds } from '@/utils/todoUtils';
 
 export const useTodos = (inBacklog: boolean = false, assignedUser?: string) => {
   const [todos, setTodos] = useState<Todo[]>([]);
+  const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
 
-  const fetchTodos = async () => {
+  const fetchTodos = useCallback(async () => {
     const data = await fetchTodosFromSupabase(inBacklog, assignedUser);
     setTodos(transformTodosToTree(data));
-  };
+  }, [inBacklog, assignedUser]);
 
   const addTodo = async (text: string, parentId: string | null = null) => {
     try {
@@ -141,21 +142,31 @@ export const useTodos = (inBacklog: boolean = false, assignedUser?: string) => {
   useEffect(() => {
     fetchTodos();
     
+    // Clean up previous subscription if it exists
+    if (channelRef.current) {
+      supabase.removeChannel(channelRef.current);
+    }
+
+    // Create new subscription
     const channel = supabase
       .channel('public:todos')
       .on('postgres_changes', 
         { event: '*', schema: 'public', table: 'todos' }, 
-        () => {
-          console.log('Database change detected, refetching todos');
-          fetchTodos();
+        async (payload) => {
+          console.log('Database change detected:', payload);
+          await fetchTodos();
         }
       )
       .subscribe();
 
+    channelRef.current = channel;
+
     return () => {
-      supabase.removeChannel(channel);
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current);
+      }
     };
-  }, [inBacklog, assignedUser]);
+  }, [inBacklog, assignedUser, fetchTodos]);
 
   return {
     todos,

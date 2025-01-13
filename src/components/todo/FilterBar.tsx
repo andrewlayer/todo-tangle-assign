@@ -1,66 +1,66 @@
-import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
-import { useState } from "react";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
+import { Loader2 } from 'lucide-react';
 
-export interface FilterBarProps {
+interface FilterBarProps {
   showCompleted: boolean;
-  onShowCompletedChange: (value: boolean) => void;
-  onAddTodo: (text: string, parentId?: string | null) => Promise<any>;
+  onShowCompletedChange: (show: boolean) => void;
+  onAddTodo: (text: string) => Promise<void>;
+  isAddingTodo: boolean;
 }
 
-const FilterBar = ({ showCompleted, onShowCompletedChange, onAddTodo }: FilterBarProps) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const [todoText, setTodoText] = useState("");
+const FilterBar = ({ 
+  showCompleted, 
+  onShowCompletedChange, 
+  onAddTodo,
+  isAddingTodo 
+}: FilterBarProps) => {
+  const [newTodo, setNewTodo] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (todoText.trim()) {
-      await onAddTodo(todoText.trim());
-      setTodoText("");
-      setIsOpen(false);
+    if (!newTodo.trim() || isAddingTodo) return;
+
+    try {
+      await onAddTodo(newTodo.trim());
+      setNewTodo('');
+    } catch (error) {
+      console.error('Error in FilterBar:', error);
     }
   };
 
   return (
-    <div className="flex items-center justify-between gap-4">
+    <div className="space-y-4">
+      <form onSubmit={handleSubmit} className="flex gap-2">
+        <Input
+          value={newTodo}
+          onChange={(e) => setNewTodo(e.target.value)}
+          placeholder="Add a new todo..."
+          className="flex-1"
+          disabled={isAddingTodo}
+        />
+        <Button type="submit" disabled={!newTodo.trim() || isAddingTodo}>
+          {isAddingTodo ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Adding...
+            </>
+          ) : (
+            'Add Todo'
+          )}
+        </Button>
+      </form>
       <div className="flex items-center space-x-2">
         <Switch
           id="show-completed"
           checked={showCompleted}
           onCheckedChange={onShowCompletedChange}
         />
-        <Label htmlFor="show-completed">Show completed</Label>
+        <Label htmlFor="show-completed">Show completed todos</Label>
       </div>
-
-      <Button onClick={() => setIsOpen(true)} className="gap-2">
-        <Plus className="h-4 w-4" />
-        Add Todo
-      </Button>
-
-      <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Add New Todo</DialogTitle>
-          </DialogHeader>
-          <form onSubmit={handleSubmit}>
-            <div className="space-y-4 py-4">
-              <Input
-                value={todoText}
-                onChange={(e) => setTodoText(e.target.value)}
-                placeholder="Enter todo text..."
-                autoFocus
-              />
-            </div>
-            <DialogFooter>
-              <Button type="submit">Add Todo</Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };
