@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import TodoItem from './TodoItem';
+import TodoItem from '@/components/TodoItem';
 import { useTodos } from '@/hooks/useTodos';
-import FilterBar from './todo/FilterBar';
-import SignatureModal from './SignatureModal';
+import FilterBar from '@/components/todo/FilterBar';
+import SignatureModal from '@/components/SignatureModal';
 import { Todo } from '@/types/todo';
 import { toast } from '@/hooks/use-toast';
 

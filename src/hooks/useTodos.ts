@@ -126,10 +126,8 @@ export const useTodos = (inBacklog: boolean = false, assignedUser?: string) => {
   };
 
   const assignTodo = async (todoId: string, assignee: string) => {
-    const success = await updateTodoInSupabase(todoId, { 
-      assigned_to: assignee,
-      in_backlog: Boolean(assignee)
-    });
+    // Only update the assignee, don't change in_backlog status
+    const success = await updateTodoInSupabase(todoId, { assigned_to: assignee });
     if (success) {
       await fetchTodos();
     }
