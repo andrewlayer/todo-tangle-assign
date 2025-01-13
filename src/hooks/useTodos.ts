@@ -19,15 +19,17 @@ export const useTodos = (inBacklog: boolean = false, assignedUser?: string) => {
   };
 
   const addTodo = async (text: string, parentId: string | null = null) => {
-    const data = await addTodoToSupabase(text, parentId, inBacklog, assignedUser);
-    if (data) {
-      await fetchTodos();
-      toast({
-        title: "Todo added",
-        description: parentId ? "Sub-todo added successfully" : "Todo added successfully",
-      });
+    try {
+      const data = await addTodoToSupabase(text, parentId, inBacklog, assignedUser);
+      if (data) {
+        await fetchTodos();
+        return data;
+      }
+      throw new Error('Failed to add todo');
+    } catch (error) {
+      console.error('Error in addTodo:', error);
+      throw error;
     }
-    return data;
   };
 
   const updateTodoText = async (todoId: string, text: string) => {

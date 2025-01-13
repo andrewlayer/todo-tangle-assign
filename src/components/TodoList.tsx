@@ -49,7 +49,7 @@ const TodoList = ({ assignedUser, onMoveToMainList }: TodoListProps) => {
     }
   };
 
-  const handleAddSubTodo = async (parentId: string, text: string) => {
+  const handleAddSubTodo = async (parentId: string, text: string): Promise<void> => {
     try {
       const result = await addTodo(text, parentId);
       if (!result) {
@@ -66,7 +66,7 @@ const TodoList = ({ assignedUser, onMoveToMainList }: TodoListProps) => {
         description: "Failed to add sub-todo. Please try again.",
         variant: "destructive"
       });
-      throw error; // Re-throw to handle in the modal
+      throw error;
     }
   };
 
