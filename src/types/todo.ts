@@ -7,5 +7,6 @@ export interface Todo {
   signature: string;
   notes: string;
   created_at?: string;
+  in_backlog: boolean;
   subTodos: Todo[];
 }

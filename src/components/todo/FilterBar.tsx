@@ -1,108 +1,66 @@
-import React from 'react';
-import { Check, ChevronsUpDown } from "lucide-react";
-import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "@/components/ui/command";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { Badge } from "@/components/ui/badge";
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { Plus } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { useState } from "react";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 
-interface FilterBarProps {
-  value: string[];
-  onChange: (value: string[]) => void;
-  placeholder?: string;
+export interface FilterBarProps {
+  showCompleted: boolean;
+  onShowCompletedChange: (value: boolean) => void;
+  onAddTodo: (text: string, parentId?: string | null) => Promise<any>;
 }
 
-const FilterBar = ({ value = [], onChange, placeholder }: FilterBarProps) => {
-  const [open, setOpen] = React.useState(false);
+const FilterBar = ({ showCompleted, onShowCompletedChange, onAddTodo }: FilterBarProps) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [todoText, setTodoText] = useState("");
 
-  const { data: users = [], isLoading } = useQuery({
-    queryKey: ['assignable-users'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('assignable_users')
-        .select('*')
-        .order('name');
-      
-      if (error) throw error;
-      return data || [];
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (todoText.trim()) {
+      await onAddTodo(todoText.trim());
+      setTodoText("");
+      setIsOpen(false);
     }
-  });
-
-  const toggleUser = (userName: string) => {
-    const newValue = Array.isArray(value) && value.includes(userName)
-      ? value.filter(v => v !== userName)
-      : [...(Array.isArray(value) ? value : []), userName];
-    onChange(newValue);
   };
 
   return (
-    <div className="relative w-full">
-      <Popover open={open} onOpenChange={setOpen}>
-        <PopoverTrigger asChild>
-          <Button
-            variant="outline"
-            role="combobox"
-            aria-expanded={open}
-            className="w-full justify-between"
-            disabled={isLoading}
-          >
-            {!value?.length ? (
-              <span className="text-muted-foreground">{placeholder}</span>
-            ) : (
-              <div className="flex flex-wrap gap-1">
-                {value.map((userName) => (
-                  <Badge 
-                    key={userName}
-                    variant="secondary"
-                    className="mr-1"
-                  >
-                    {userName}
-                  </Badge>
-                ))}
-              </div>
-            )}
-            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent className="w-full p-0">
-          <Command>
-            <CommandInput placeholder="Search users..." />
-            <CommandList>
-              <CommandEmpty>No user found.</CommandEmpty>
-              <CommandGroup>
-                {users.map((user) => (
-                  <CommandItem
-                    key={user.id}
-                    value={user.name}
-                    onSelect={() => toggleUser(user.name)}
-                  >
-                    <Check
-                      className={cn(
-                        "mr-2 h-4 w-4",
-                        Array.isArray(value) && value.includes(user.name) ? "opacity-100" : "opacity-0"
-                      )}
-                    />
-                    {user.name}
-                  </CommandItem>
-                ))}
-              </CommandGroup>
-            </CommandList>
-          </Command>
-        </PopoverContent>
-      </Popover>
+    <div className="flex items-center justify-between gap-4">
+      <div className="flex items-center space-x-2">
+        <Switch
+          id="show-completed"
+          checked={showCompleted}
+          onCheckedChange={onShowCompletedChange}
+        />
+        <Label htmlFor="show-completed">Show completed</Label>
+      </div>
+
+      <Button onClick={() => setIsOpen(true)} className="gap-2">
+        <Plus className="h-4 w-4" />
+        Add Todo
+      </Button>
+
+      <Dialog open={isOpen} onOpenChange={setIsOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add New Todo</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleSubmit}>
+            <div className="space-y-4 py-4">
+              <Input
+                value={todoText}
+                onChange={(e) => setTodoText(e.target.value)}
+                placeholder="Enter todo text..."
+                autoFocus
+              />
+            </div>
+            <DialogFooter>
+              <Button type="submit">Add Todo</Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
