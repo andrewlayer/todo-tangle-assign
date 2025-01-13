@@ -4,6 +4,7 @@ import { useTodos } from '@/hooks/useTodos';
 import FilterBar from './todo/FilterBar';
 import SignatureModal from './SignatureModal';
 import { Todo } from '@/types/todo';
+import { toast } from '@/components/ui/use-toast';
 
 interface TodoListProps {
   assignedUser?: string;
@@ -33,18 +34,66 @@ const TodoList = ({ assignedUser, onMoveToMainList }: TodoListProps) => {
 
   const handleSignatureSubmit = async (signature: string) => {
     if (selectedTodo) {
-      await completeTodo(selectedTodo.id, signature);
-      setSelectedTodo(null);
-      setIsSignatureModalOpen(false);
+      try {
+        await completeTodo(selectedTodo.id, signature);
+        setSelectedTodo(null);
+        setIsSignatureModalOpen(false);
+      } catch (error) {
+        console.error('Error completing todo:', error);
+        toast({
+          title: "Error",
+          description: "Failed to complete the todo. Please try again.",
+          variant: "destructive"
+        });
+      }
+    }
+  };
+
+  const handleAddSubTodo = async (parentId: string, text: string) => {
+    try {
+      const result = await addTodo(text, parentId);
+      if (!result) {
+        throw new Error('Failed to add subtodo');
+      }
+      toast({
+        title: "Success",
+        description: "Sub-todo added successfully",
+      });
+    } catch (error) {
+      console.error('Error adding subtodo:', error);
+      toast({
+        title: "Error",
+        description: "Failed to add sub-todo. Please try again.",
+        variant: "destructive"
+      });
+      throw error; // Re-throw to handle in the modal
     }
   };
 
   const handleUncomplete = async (todoId: string) => {
-    await uncompleteTodo(todoId);
+    try {
+      await uncompleteTodo(todoId);
+    } catch (error) {
+      console.error('Error uncompleting todo:', error);
+      toast({
+        title: "Error",
+        description: "Failed to uncomplete the todo. Please try again.",
+        variant: "destructive"
+      });
+    }
   };
 
   const handleMoveToMainList = async (todo: Todo) => {
-    await moveToMainList(todo.id);
+    try {
+      await moveToMainList(todo.id);
+    } catch (error) {
+      console.error('Error moving todo:', error);
+      toast({
+        title: "Error",
+        description: "Failed to move the todo. Please try again.",
+        variant: "destructive"
+      });
+    }
   };
 
   const filteredTodos = todos.filter(todo => showCompleted || !todo.completed);
@@ -64,7 +113,7 @@ const TodoList = ({ assignedUser, onMoveToMainList }: TodoListProps) => {
             onComplete={handleComplete}
             onUncomplete={handleUncomplete}
             onAssign={assignTodo}
-            onAddSubTodo={addTodo}
+            onAddSubTodo={handleAddSubTodo}
             onDelete={deleteTodo}
             onUpdateNotes={updateNotes}
             onUpdateText={updateTodoText}
