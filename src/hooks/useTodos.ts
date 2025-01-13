@@ -162,17 +162,20 @@ export const useTodos = (inBacklog: boolean = false, assignedUser?: string) => {
     isMounted.current = true;
     fetchTodos();
 
+    // Clean up existing channel if it exists
     if (channelRef.current) {
       supabase.removeChannel(channelRef.current);
     }
 
+    // Set up new channel for real-time updates
     const channel = supabase
-      .channel('public:todos')
-      .on('postgres_changes', 
-        { event: '*', schema: 'public', table: 'todos' }, 
-        async () => {
+      .channel('todos-changes')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'todos' },
+        () => {
           if (isMounted.current) {
-            await fetchTodos();
+            fetchTodos();
           }
         }
       )

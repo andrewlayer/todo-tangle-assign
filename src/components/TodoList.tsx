@@ -75,9 +75,6 @@ const TodoList = ({ assignedUser, onMoveToMainList }: TodoListProps) => {
   };
 
   const handleAddSubTodo = async (parentId: string, text: string): Promise<void> => {
-    if (isAddingTodo) return;
-    
-    setIsAddingTodo(true);
     try {
       const result = await addTodo(text, parentId);
       if (!result) {
@@ -91,8 +88,6 @@ const TodoList = ({ assignedUser, onMoveToMainList }: TodoListProps) => {
         variant: "destructive"
       });
       throw error;
-    } finally {
-      setIsAddingTodo(false);
     }
   };
 
@@ -110,6 +105,15 @@ const TodoList = ({ assignedUser, onMoveToMainList }: TodoListProps) => {
   };
 
   const handleMoveToMainList = async (todo: Todo) => {
+    if (!todo.in_backlog) {
+      toast({
+        title: "Cannot move todo",
+        description: "This todo is not in the backlog",
+        variant: "destructive"
+      });
+      return;
+    }
+
     try {
       await moveToMainList(todo.id);
     } catch (error) {
