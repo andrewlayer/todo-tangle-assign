@@ -4,7 +4,7 @@ import { useTodos } from '@/hooks/useTodos';
 import FilterBar from './todo/FilterBar';
 import SignatureModal from './SignatureModal';
 import { Todo } from '@/types/todo';
-import { toast } from '@/components/ui/use-toast';
+import { toast } from '@/hooks/use-toast';
 
 interface TodoListProps {
   assignedUser?: string;
@@ -19,6 +19,7 @@ const TodoList = ({ assignedUser, onMoveToMainList }: TodoListProps) => {
   
   const { 
     todos, 
+    isLoading,
     addTodo, 
     updateTodoText, 
     deleteTodo, 
@@ -52,7 +53,7 @@ const TodoList = ({ assignedUser, onMoveToMainList }: TodoListProps) => {
   };
 
   const handleAddTodo = async (text: string) => {
-    if (isAddingTodo) return; // Prevent multiple submissions
+    if (isAddingTodo) return;
     
     setIsAddingTodo(true);
     try {
@@ -82,10 +83,6 @@ const TodoList = ({ assignedUser, onMoveToMainList }: TodoListProps) => {
       if (!result) {
         throw new Error('Failed to add subtodo');
       }
-      toast({
-        title: "Success",
-        description: "Sub-todo added successfully",
-      });
     } catch (error) {
       console.error('Error adding subtodo:', error);
       toast({
@@ -126,6 +123,14 @@ const TodoList = ({ assignedUser, onMoveToMainList }: TodoListProps) => {
   };
 
   const filteredTodos = todos.filter(todo => showCompleted || !todo.completed);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-8">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">

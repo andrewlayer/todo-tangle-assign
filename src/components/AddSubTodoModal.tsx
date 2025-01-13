@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { toast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
 
 interface AddSubTodoModalProps {
   isOpen: boolean;
@@ -13,16 +13,21 @@ interface AddSubTodoModalProps {
 const AddSubTodoModal = ({ isOpen, onClose, onAdd }: AddSubTodoModalProps) => {
   const [newTodo, setNewTodo] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newTodo.trim()) return;
+    if (!newTodo.trim() || isSubmitting) return;
 
     setIsSubmitting(true);
     try {
       await onAdd(newTodo.trim());
       setNewTodo('');
       onClose();
+      toast({
+        title: "Success",
+        description: "Sub-todo added successfully",
+      });
     } catch (error) {
       console.error('Error adding subtodo:', error);
       toast({

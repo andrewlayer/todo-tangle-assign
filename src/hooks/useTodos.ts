@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Todo } from '@/types/todo';
-import { toast } from '@/components/ui/use-toast';
+import { toast } from '@/hooks/use-toast';
 import { 
   fetchTodosFromSupabase,
   addTodoToSupabase,
@@ -12,11 +12,32 @@ import { transformTodosToTree, getAllChildIds } from '@/utils/todoUtils';
 
 export const useTodos = (inBacklog: boolean = false, assignedUser?: string) => {
   const [todos, setTodos] = useState<Todo[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
+  const isMounted = useRef(true);
 
   const fetchTodos = useCallback(async () => {
-    const data = await fetchTodosFromSupabase(inBacklog, assignedUser);
-    setTodos(transformTodosToTree(data));
+    if (!isMounted.current) return;
+    setIsLoading(true);
+    try {
+      const data = await fetchTodosFromSupabase(inBacklog, assignedUser);
+      if (isMounted.current) {
+        setTodos(transformTodosToTree(data));
+      }
+    } catch (error) {
+      console.error('Error fetching todos:', error);
+      if (isMounted.current) {
+        toast({
+          title: "Error",
+          description: "Failed to fetch todos. Please refresh the page.",
+          variant: "destructive"
+        });
+      }
+    } finally {
+      if (isMounted.current) {
+        setIsLoading(false);
+      }
+    }
   }, [inBacklog, assignedUser]);
 
   const addTodo = async (text: string, parentId: string | null = null) => {
@@ -140,21 +161,21 @@ export const useTodos = (inBacklog: boolean = false, assignedUser?: string) => {
   };
 
   useEffect(() => {
+    isMounted.current = true;
     fetchTodos();
-    
-    // Clean up previous subscription if it exists
+
     if (channelRef.current) {
       supabase.removeChannel(channelRef.current);
     }
 
-    // Create new subscription
     const channel = supabase
       .channel('public:todos')
       .on('postgres_changes', 
         { event: '*', schema: 'public', table: 'todos' }, 
-        async (payload) => {
-          console.log('Database change detected:', payload);
-          await fetchTodos();
+        async () => {
+          if (isMounted.current) {
+            await fetchTodos();
+          }
         }
       )
       .subscribe();
@@ -162,6 +183,7 @@ export const useTodos = (inBacklog: boolean = false, assignedUser?: string) => {
     channelRef.current = channel;
 
     return () => {
+      isMounted.current = false;
       if (channelRef.current) {
         supabase.removeChannel(channelRef.current);
       }
@@ -170,6 +192,7 @@ export const useTodos = (inBacklog: boolean = false, assignedUser?: string) => {
 
   return {
     todos,
+    isLoading,
     addTodo,
     updateTodoText,
     deleteTodo,
